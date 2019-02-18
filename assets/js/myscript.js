@@ -598,82 +598,82 @@ Highcharts.chart('BJP-UP-2014', {
 
 // mode
 
-var chart = Highcharts.chart('bjp_power', {
+// var chart = Highcharts.chart('bjp_power', {
 
-    chart: {
-        type: 'column'
-    },
+//     chart: {
+//         type: 'column'
+//     },
 
-    title: {
-        text: 'Highcharts responsive chart'
-    },
+//     title: {
+//         text: 'Highcharts responsive chart'
+//     },
 
-    subtitle: {
-        text: 'Resize the frame or click buttons to change appearance'
-    },
+//     subtitle: {
+//         text: 'Resize the frame or click buttons to change appearance'
+//     },
 
-    legend: {
-        align: 'right',
-        verticalAlign: 'middle',
-        layout: 'vertical'
-    },
+//     legend: {
+//         align: 'right',
+//         verticalAlign: 'middle',
+//         layout: 'vertical'
+//     },
 
-    xAxis: {
-        categories: ['Median Vote Share', 'Mean Vote Share'],
-        labels: {
-            x: -10
-        }
-    },
+//     xAxis: {
+//         categories: ['Median Vote Share', 'Mean Vote Share'],
+//         labels: {
+//             x: -10
+//         }
+//     },
 
-    yAxis: {
-        allowDecimals: false,
-        title: {
-            text: 'Amount'
-        }
-    },
+//     yAxis: {
+//         allowDecimals: false,
+//         title: {
+//             text: 'Amount'
+//         }
+//     },
 
-    series: [{
-        name: '1990-2008',
-        data: [47.8, 46.8]
-    }, {
-        name: '2013',
-        data: [48.7, 48.2]
-    }, {
-        name: '2018',
-        data: [47, 45.9]
-    }],
+//     series: [{
+//         name: '1990-2008',
+//         data: [47.8, 46.8]
+//     }, {
+//         name: '2013',
+//         data: [48.7, 48.2]
+//     }, {
+//         name: '2018',
+//         data: [47, 45.9]
+//     }],
 
-    responsive: {
-        rules: [{
-            condition: {
-                maxWidth: 500
-            },
-            chartOptions: {
-                legend: {
-                    align: 'center',
-                    verticalAlign: 'bottom',
-                    layout: 'horizontal'
-                },
-                yAxis: {
-                    labels: {
-                        align: 'left',
-                        x: 0,
-                        y: -5
-                    },
-                    title: {
-                        text: null
-                    }
-                },
-                subtitle: {
-                    text: null
-                },
-                credits: {
-                    enabled: false
-                }
-            }
-        }]
-    }
-});
+//     responsive: {
+//         rules: [{
+//             condition: {
+//                 maxWidth: 500
+//             },
+//             chartOptions: {
+//                 legend: {
+//                     align: 'center',
+//                     verticalAlign: 'bottom',
+//                     layout: 'horizontal'
+//                 },
+//                 yAxis: {
+//                     labels: {
+//                         align: 'left',
+//                         x: 0,
+//                         y: -5
+//                     },
+//                     title: {
+//                         text: null
+//                     }
+//                 },
+//                 subtitle: {
+//                     text: null
+//                 },
+//                 credits: {
+//                     enabled: false
+//                 }
+//             }
+//         }]
+//     }
+// });
 
 
 
