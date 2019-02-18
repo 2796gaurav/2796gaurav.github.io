@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- <link rel="stylesheet" href="assets/css/literacyMap.css"> -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+</head>
+<body>
+    
+    <div id="graph"></div>
+    <div id="myDiv"></div>
+    
+
+    <script>
+
+            Plotly.d3.csv('https://raw.githubusercontent.com/plotly/datasets/master/2014_usa_states.csv', function(err, rows){
+                function unpack(rows, key) {
+                    return rows.map(function(row) { return row[key]; });
+                }
+          
+                var data = [{
+                        type: 'choropleth',
+                        locationmode: 'USA-states',
+                        locations: unpack(rows, 'postal'),
+                        z: unpack(rows, 'pop'),
+                        text: unpack(rows, 'state'),
+                        autocolorscale: true
+                }];
+          
+          
+                var layout = {
+                    title: '2014 US Population by State',
+                    geo:{
+                        scope: 'usa',
+                        countrycolor: 'rgb(255, 255, 255)',
+                        showland: true,
+                        landcolor: 'rgb(217, 217, 217)',
+                        showlakes: true,
+                        lakecolor: 'rgb(255, 255, 255)',
+                        subunitcolor: 'rgb(255, 255, 255)',
+                        lonaxis: {},
+                        lataxis: {}
+                    }
+                };
+                Plotly.plot(myDiv, data, layout, {showLink: false});
+          });
+
+
+
+        Plotly.plot('graph', [{
+            type: 'choropleth',
+            locations: ['IND'],
+            //z: [10, 30, 20, 40]
+          }], {
+            geo: {
+              projection: {
+                type: 'conic conformal',
+                //rotation: { lon: 10 },
+                //parallels: [0, 60]
+              },
+              lonaxis: { range: [68, 98] },
+              lataxis: { range: [8, 38] }
+            }
+          });
+    </script>
+</body>
+</html>
