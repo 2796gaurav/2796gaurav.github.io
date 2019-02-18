@@ -1,0 +1,69 @@
+<html>
+        <head>
+                <script src="https://d3js.org/d3.v5.min.js"></script>
+                <script src="assets/js/rellax.min.js"></script>
+                <script src="assets/js/datamaps.ind.min.js"></script>
+
+                <script src="assets/js/datamaps.none.min"></script>
+          
+                <link rel="stylesheet" href="assets/css/style.css" ></link>
+          
+                <!-- bootstrap -->
+                <!-- Latest compiled and minified CSS -->
+          <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css" integrity="sha384-PmY9l28YgO4JwMKbTvgaS7XNZJ30MK9FAZjjzXtlqyZCqBY6X6bXIkM++IkyinN+" crossorigin="anonymous">
+          
+          <!-- Optional theme -->
+          <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap-theme.min.css" integrity="sha384-jzngWsPS6op3fgRCDTESqrEJwRKck+CILhJVO5VvaAZCq8JYf8HsR/HPpBOOPZfR" crossorigin="anonymous">
+          
+          <!-- Latest compiled and minified JavaScript -->
+          <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js" integrity="sha384-vhJnz1OVIdLktyixHY4Uk3OHEwdQqPppqYR8+5mjsauETgLOcEynD9oPHhhz18Nw" crossorigin="anonymous"></script>
+             </head>
+
+    <body>
+        a
+        <div id="container" style="position: relative; width: 500px; height: 300px;"></div>
+        <div id="india" style="position: relative; width: 500px; height: 300px;"></div>
+<script>
+    var map = new Datamap({element: document.getElementById('container')});
+</script>
+
+
+
+
+            <script src="//cdnjs.cloudflare.com/ajax/libs/d3/4.3.0/d3.min.js"></script>    
+            <script>
+                    var bubble_map = new Datamap({
+                        element: document.getElementById('india'),
+                        scope: 'india',
+                        geographyConfig: {
+                            popupOnHover: true,
+                            highlightOnHover: true,
+                            borderColor: '#444',
+                            borderWidth: 0.5,
+                            dataUrl: 'https://rawgit.com/Anujarya300/bubble_maps/master/data/geography-data/india.topo.json'
+                            //dataJson: topoJsonData
+                        },
+                        fills: {
+                            'MAJOR': '#306596',
+                            'MEDIUM': '#0fa0fa',
+                            'MINOR': '#bada55',
+                            defaultFill: '#dddddd'
+                        },
+                        data: {
+                            'JH': { fillKey: 'MINOR' },
+                            'MH': { fillKey: 'MINOR' }
+                        },
+                        setProjection: function (element) {
+                            var projection = d3.geo.mercator()
+                                .center([78.9629, 23.5937]) // always in [East Latitude, North Longitude]
+                                .scale(1000);
+                            var path = d3.geo.path().projection(projection);
+                            return { path: path, projection: projection };
+                        }
+            });
+            
+            </script>
+
+
+    </body>
+</html>
