@@ -186,7 +186,7 @@ p.hover-source:hover{
     border-radius: 12px;
     z-index: -1;
     margin-top: -220px;
-    margin-left: 100px;
+    margin-left: 300px;
   }
 
   .fixed-top-right {
@@ -197,7 +197,7 @@ p.hover-source:hover{
     border-radius: 12px;
     z-index: -1;
     margin-top: 220px;
-    margin-left: 960px;
+    margin-left: 660px;
     display:block;
 
     
