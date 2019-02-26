@@ -1,6 +1,7 @@
 
 $(document).ready(function() {
 
+   
 
 
     // youth 1
@@ -9,20 +10,24 @@ $(document).ready(function() {
 
     Highcharts.chart('youth1', {
         chart: {
-            type: 'line'
+            type: 'line',
+            backgroundColor: '#EDF2F4',
         },
         title: {
-            text: 'Monthly Average Temperature'
+            text: 'Young voters showed up in 2014'
         },
         subtitle: {
-            text: 'Source: WorldClimate.com'
+            text: 'Source: <a href="http://www.lokniti.org/punjab_pdf/The-Youth-Vote.pdf" target="_blank">Lokniti</a>'
         },
         xAxis: {
-            categories: [1999,2004,2009,2014]
+            categories: [1999,2004,2009,2014],
+            title: {
+                text: 'Election year'
+            }
         },
         yAxis: {
             title: {
-                text: 'Temperature (°C)'
+                text: 'Percentage'
             }
         },
         plotOptions: {
@@ -34,10 +39,10 @@ $(document).ready(function() {
             }
         },
         series: [{
-            name: 'Tokyo',
+            name: 'All India',
             data: [57,52,54,68]
         }, {
-            name: 'London',
+            name: 'Young voters',
             data: [60,58,58,66]
         }]
     });
@@ -56,11 +61,9 @@ $(document).ready(function() {
                     backgroundColor: '#EDF2F4',
                 },
                 title: {
-                    text: 'Contents of Highsoft\'s weekly fruit delivery'
+                    text: 'Twitter no. of followers count'
                 },
-                subtitle: {
-                    text: '3D donut in Highcharts'
-                },
+                
                 plotOptions: {
                     pie: {
                         innerSize: 100,
@@ -86,10 +89,7 @@ $(document).ready(function() {
                     backgroundColor: '#EDF2F4',
                 },
                 title: {
-                    text: 'Contents of Highsoft\'s weekly fruit delivery'
-                },
-                subtitle: {
-                    text: '3D donut in Highcharts'
+                    text: 'Facebook no. of followers count'
                 },
                 plotOptions: {
                     pie: {
@@ -473,7 +473,7 @@ Highcharts.chart('alliance', {
         text: "NDA and UPA MLA's in elections "
     },
     subtitle: {
-        text: 'Source: <a href="http://statcounter.com" target="_blank">statcounter.com</a>'  // change this
+        text: 'Source: <a href="https://en.wikipedia.org/wiki/National_Democratic_Alliance_(India)" target="_blank">NDA</a><br/> <a href="https://en.wikipedia.org/wiki/United_Progressive_Alliance" target="_blank">UPA</a>'  // change this
     },
     plotOptions: {
         pie: {
@@ -527,6 +527,8 @@ Highcharts.chart('alliance', {
 });
 
 
+
+
 Highcharts.chart('BJP-UP-2009', {
     chart: {
         type: 'pie',
@@ -537,10 +539,10 @@ Highcharts.chart('BJP-UP-2009', {
         backgroundColor: '#EDF2F4',
     },
     title: {
-        text: 'Contents of Highsoft\'s weekly fruit delivery'
+        text: 'Party performance in Uttar Pradesh, seat-wise, 2009'
     },
     subtitle: {
-        text: '3D donut in Highcharts'
+        text: 'Source:  <a href="https://scroll.in/article/666049/everything-you-need-to-know-about-lok-sabha-verdict-2014-explained-in-40-charts" target="_blank">Everything you need to know about Lok Sabha Verdict 2014 explained in 40 charts</a>'
     },
     plotOptions: {
         pie: {
@@ -572,10 +574,10 @@ Highcharts.chart('BJP-UP-2014', {
         backgroundColor: '#EDF2F4',
     },
     title: {
-        text: 'Contents of Highsoft\'s weekly fruit delivery'
+        text: 'Party performance in Uttar Pradesh, seat-wise, 2014'
     },
     subtitle: {
-        text: '3D donut in Highcharts'
+        text: 'Source:  <a href="https://scroll.in/article/666049/everything-you-need-to-know-about-lok-sabha-verdict-2014-explained-in-40-charts" target="_blank">Everything you need to know about Lok Sabha Verdict 2014 explained in 40 charts</a>'
     },
     plotOptions: {
         pie: {
@@ -683,13 +685,14 @@ Highcharts.chart('BJP-UP-2014', {
     
 Highcharts.chart('other_party', {
     chart: {
-        type: 'column'
+        type: 'column',
+        backgroundColor: '#EDF2F4',
     },
     title: {
-        text: 'Monthly Average Rainfall'
+        text: 'State-wise vote share and seat share of regional parties'
     },
     subtitle: {
-        text: 'Source: WorldClimate.com'
+        text: 'Source:  <a href="https://scroll.in/article/666049/everything-you-need-to-know-about-lok-sabha-verdict-2014-explained-in-40-charts" target="_blank">Everything you need to know about Lok Sabha Verdict 2014 explained in 40 charts</a>'
     },
     xAxis: {
         categories: [

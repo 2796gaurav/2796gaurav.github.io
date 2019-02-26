@@ -154,10 +154,7 @@ function socialtwitter(id)
             backgroundColor: '#EDF2F4',
         },
         title: {
-            text: 'Contents of Highsoft\'s weekly fruit delivery'
-        },
-        subtitle: {
-            text: '3D donut in Highcharts'
+            text: 'Twitter in comparision of retweets'
         },
         plotOptions: {
             pie: {
@@ -198,11 +195,9 @@ function socialtwitter_a(id)
             backgroundColor: '#EDF2F4',
         },
         title: {
-            text: 'Contents of Highsoft\'s weekly fruit delivery'
+            text: 'Twitter in comparision of likes'
         },
-        subtitle: {
-            text: '3D donut in Highcharts'
-        },
+        
         plotOptions: {
             pie: {
                 innerSize: 100,
@@ -241,7 +236,7 @@ function socialtwitter_a(id)
             backgroundColor: '#EDF2F4',
         },
         title: {
-            text: 'Contents of Highsoft\'s weekly fruit delivery'
+            text: 'Facebook in comparision of reactions'
         },
         subtitle: {
             text: '3D donut in Highcharts'
@@ -286,10 +281,7 @@ function socialfb_a(id)
             
         },
         title: {
-            text: 'Contents of Highsoft\'s weekly fruit delivery'
-        },
-        subtitle: {
-            text: '3D donut in Highcharts'
+            text: 'Facebook in comparision of shares'
         },
         plotOptions: {
             pie: {

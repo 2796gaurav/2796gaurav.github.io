@@ -46,7 +46,8 @@ button:focus {
 }
 
 p.hover-source:hover{
-  color:red;
+  color:rgb(63, 20, 20);
+  text-decoration: underline;
 
 }
 
@@ -196,8 +197,13 @@ p.hover-source:hover{
     border-radius: 12px;
     z-index: -1;
     margin-top: 220px;
-    margin-left: 860px;
+    margin-left: 960px;
+    display:block;
+
+    
   }
+
+
 
   .fixed-second {
     position: absolute;
