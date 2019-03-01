@@ -35,7 +35,7 @@ $(document).ready(function() {
                 dataLabels: {
                     enabled: true
                 },
-                enableMouseTracking: false
+                //enableMouseTracking: false
             }
         },
         series: [{
@@ -71,7 +71,7 @@ $(document).ready(function() {
                     }
                 },
                 series: [{
-                    name: 'Delivered amount',
+                    name: 'count',
                     data: [['Narendra Modi', 44188283],['Rahul Gandhi', 7753915],['INC India', 4597455],['BJP4India', 10169513]],
                 }]
             });
@@ -98,7 +98,7 @@ $(document).ready(function() {
                     }
                 },
                 series: [{
-                    name: 'Delivered amount',
+                    name: 'count',
                     data: [['Narendra Modi', 43266122],['Rahul Gandhi', 1962344],['INC India', 4921241],['BJP4India', 15212070]],
                 }]
             });
@@ -486,9 +486,9 @@ Highcharts.chart('alliance', {
         valueSuffix: ''
     },
     series: [{
-        name: 'Main Party',
+        name: '',
         data: browserData,
-        size: '60%',
+        size: '100%',
         dataLabels: {
             formatter: function () {
                 return this.y > 5 ? this.point.name : null;
@@ -497,10 +497,10 @@ Highcharts.chart('alliance', {
             distance: -30
         }
     }, {
-        name: 'Parties',
+        name: '',
         data: versionsData,
-        size: '80%',
-        innerSize: '60%',
+        size: '100%',
+        //innerSize: '60%',
         dataLabels: {
             formatter: function () {
                 // display only if larger than 1
@@ -508,23 +508,9 @@ Highcharts.chart('alliance', {
                     this.y + 'votes' : null;
             }
         },
-        id: 'versions'
+       
     }],
-    responsive: {
-        rules: [{
-            condition: {
-                maxWidth: 400
-            },
-            chartOptions: {
-                series: [{
-                    id: 'versions',
-                    dataLabels: {
-                        enabled: false
-                    }
-                }]
-            }
-        }]
-    }
+    
 });
 
 
@@ -552,7 +538,7 @@ Highcharts.chart('BJP-UP-2009', {
         }
     },
     series: [{
-        name: 'Delivered amount',
+        name: 'No. of Seats won',
         data: [
             ['BJP', 8],
             ['BSP', 16],
@@ -587,7 +573,7 @@ Highcharts.chart('BJP-UP-2014', {
         }
     },
     series: [{
-        name: 'Delivered amount',
+        name: 'No. of seats won',
         data: [
             ['BJP', 71],
             ['BSP', 0],
@@ -725,7 +711,7 @@ Highcharts.chart('other_party', {
     tooltip: {
         headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
         pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-            '<td style="padding:0"><b>{point.y:.1f} mm</b></td></tr>',
+            '<td style="padding:0"><b>{point.y:.1f} %</b></td></tr>',
         footerFormat: '</table>',
         shared: true,
         useHTML: true

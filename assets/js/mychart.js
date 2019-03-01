@@ -163,7 +163,7 @@ function socialtwitter(id)
             }
         },
         series: [{
-            name: 'Delivered amount',
+            name: 'count',
             data: data,
         }]
     });
@@ -205,7 +205,7 @@ function socialtwitter_a(id)
             }
         },
         series: [{
-            name: 'Delivered amount',
+            name: 'count',
             data: data,
         }]
     });
@@ -248,7 +248,7 @@ function socialtwitter_a(id)
             }
         },
         series: [{
-            name: 'Delivered amount',
+            name: 'count',
             data: data,
         }]
     });
@@ -290,7 +290,7 @@ function socialfb_a(id)
             }
         },
         series: [{
-            name: 'Delivered amount',
+            name: 'count',
             data: data,
         }]
     });
