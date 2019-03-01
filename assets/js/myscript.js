@@ -467,7 +467,8 @@ for (i = 0; i < dataLen; i += 1) {
 // Create the chart
 Highcharts.chart('alliance', {
     chart: {
-        type: 'pie'
+        type: 'pie',
+        backgroundColor: null
     },
     title: {
         text: "NDA and UPA MLA's in elections "
