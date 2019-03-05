@@ -7,9 +7,7 @@ html, body {
     overflow-x: hidden;
   }
 
-  p{
-    color:rgba(4, 0, 0, 0.885);
-  }
+ 
   hr { 
     display: block;
     margin-top: 0.5em;
@@ -158,6 +156,12 @@ input:checked + .slider:before {
 }
 .fa-medium {
   background: #000305;
+  color: white;
+  border-radius: 10%;
+}
+
+.fa-reddit {
+  background: #9b0a12;
   color: white;
   border-radius: 10%;
 }
