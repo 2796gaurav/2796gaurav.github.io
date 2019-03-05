@@ -4,18 +4,72 @@ $(document).ready(function() {
 
     // button click
 
-    $( "#soc-twi-1" ).trigger( "click" );
-    $( "#soc-twi-2" ).trigger( "click" );
-    $( "#soc-fb-1" ).trigger( "click" );
-    $( "#soc-fb-2" ).trigger( "click" );
+    // $( "#soc-twi-1" ).trigger( "click" );
+    // $( "#soc-twi-2" ).trigger( "click" );
+    // $( "#soc-fb-1" ).trigger( "click" );
+    // $( "#soc-fb-2" ).trigger( "click" );
 
+    // $("#soc-twi-1").click(); 
+    // $("#soc-twi-2").click(); 
+    // $("#soc-fb-1").click(); 
+    // $("#soc-fb-2").click(); 
+
+    //console.log($('#abccde').prop('checked'));
+    $('#soc-twi-1').prop('checked', false);
+
+    $('#soc-twi-2').prop('checked', false);
+
+    $('#soc-fb-1').prop('checked', false);
+
+    $('#soc-fb-2').prop('checked', false);
+
+    if($('#soc-twi-1').prop("checked") == false){
+        socialtwitter(1);
+        $("#soc-twi-1-text").text("No. of Retweets");
+         //run code
+      }else{
+         //run code
+         socialtwitter(2);
+         $("#soc-twi-1-text").text("Average");
+      }
+
+      if($('#soc-twi-2').prop("checked") == false){
+        socialtwitter_a(3);
+        $("#soc-twi-2-text").text("No. of Likes");
+         //run code
+      }else{
+         //run code
+         socialtwitter_a(4);
+         $("#soc-twi-2-text").text("Average");
+      }
+
+      if($('#soc-fb-1').prop("checked") == false){
+        socialfb(1);
+        $("#soc-fb-1-text").text("No. of Reactions");
+         //run code
+      }else{
+         //run code
+         socialfb(2);
+         $("#soc-fb-1-text").text("Average");
+      }
+
+      if($('#soc-fb-2').prop("checked") == false){
+        socialfb_a(3);
+        $("#soc-fb-2-text").text("No. of Shares");
+         //run code
+      }else{
+         //run code
+         socialfb_a(4);
+         $("#soc-fb-2-text").text("Average");
+      }
 
     Highcharts.chart('cont', {
         chart: {
             zoomType: 'xy'
         },
+        
         title: {
-            text: 'Seat & vote share of Congress & BJP'
+            text: 'Seat & vote share of INC & BJP'
         },
         subtitle: {
             text: 'Lok Sabha elections (Figures in % )'
@@ -29,13 +83,13 @@ $(document).ready(function() {
             labels: {
                 format: '',
                 style: {
-                    color: Highcharts.getOptions().colors[2]
+                    color: Highcharts.getOptions().colors[4]
                 }
             },
             title: {
                 text: 'Seat Share',
                 style: {
-                    color: Highcharts.getOptions().colors[2]
+                    color: Highcharts.getOptions().colors[4]
                 }
             },
            
@@ -70,28 +124,30 @@ $(document).ready(function() {
             backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || 'rgba(255,255,255,0.25)'
         },
         series: [{
-            name: 'Seat Share',
+            name: 'INC Seat Share',
             type: 'column',
             
             data: [76.4,37.24,45.69,25.78,25.97,20.99,26.7,37.94,8.1],
             tooltip: {
                 valueSuffix: '%'
-            }
+            },
+            color: '#004489'
     
         }, {
-            name: 'Seat Share',
+            name: 'BJP Seat Share',
             type: 'column',
             
             data: [0.37,16.07,22.47,29.65,33.52,33.52,25.41,21.36,51.93],
             tooltip: {
                 valueSuffix: ' %'
-            }
+            },
+            color: '#FF6600'
     
         },
         
         
         {
-            name: 'Vote Share',
+            name: 'INC Vote Share',
             type: 'line',
             yAxis: 1,
             data: [51.8,41.03,38.86,29.65,29.57,33.99,34.43,35.78,22.33],
@@ -102,13 +158,14 @@ $(document).ready(function() {
             }
     
         }, {
-            name: 'Vote Share',
+            name: 'BJP Vote Share',
             type: 'line',
             yAxis: 1,
             data: [19.6,26.97,22.47,23.39,36.22,39.53,34.39,23.4,39.59],
             tooltip: {
                 valueSuffix: '%'
-            }
+            },
+            color: '#278D27'
         }]
     });
 
@@ -123,10 +180,19 @@ $(document).ready(function() {
 
 
 
+
+
 // social - media
 
+var pieSocialColors = (function () {
 
+    return Highcharts.setOptions({
+        colors: ['#ba1312', '#455460', '#004489', '#FF6600']
+       });
 
+    //    return Highcharts.theme = {colors: ['#ba1312', '#455460', '#004489', '#FF6600']};
+    
+}());
 
 function socialtwitter(id)
 {
@@ -156,6 +222,7 @@ function socialtwitter(id)
         title: {
             text: 'Twitter in comparision of retweets'
         },
+        colors: pieSocialColors,
         plotOptions: {
             pie: {
                 innerSize: 100,
@@ -197,6 +264,7 @@ function socialtwitter_a(id)
         title: {
             text: 'Twitter in comparision of likes'
         },
+        colors: pieSocialColors,
         
         plotOptions: {
             pie: {
@@ -235,11 +303,12 @@ function socialtwitter_a(id)
             ,
             backgroundColor: '#EDF2F4',
         },
+        colors: pieSocialColors,
         title: {
             text: 'Facebook in comparision of reactions'
         },
         subtitle: {
-            text: '3D donut in Highcharts'
+            text: ''
         },
         plotOptions: {
             pie: {
@@ -283,6 +352,7 @@ function socialfb_a(id)
         title: {
             text: 'Facebook in comparision of shares'
         },
+        colors: pieSocialColors,
         plotOptions: {
             pie: {
                 innerSize: 100,

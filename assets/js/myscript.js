@@ -50,6 +50,9 @@ $(document).ready(function() {
 
     // social - media
 
+    // Make monochrome colors
+
+
 
     Highcharts.chart('BJP-UP-chart-1', {
                 chart: {
@@ -60,6 +63,7 @@ $(document).ready(function() {
                     },
                     backgroundColor: '#EDF2F4',
                 },
+                colors: pieSocialColors,
                 title: {
                     text: 'Twitter no. of followers count'
                 },
@@ -88,6 +92,7 @@ $(document).ready(function() {
                     },
                     backgroundColor: '#EDF2F4',
                 },
+                colors: pieSocialColors,
                 title: {
                     text: 'Facebook no. of followers count'
                 },
@@ -514,9 +519,16 @@ Highcharts.chart('alliance', {
 });
 
 
-
+// Make monochrome colors
+var pieColors = (function () {
+    return Highcharts.setOptions({
+        colors: ['#FF6600', '#22409A', '#004489', '#F50920FF', '#94938f']
+       });
+    //return colors;
+}());
 
 Highcharts.chart('BJP-UP-2009', {
+    
     chart: {
         type: 'pie',
         options3d: {
@@ -524,7 +536,10 @@ Highcharts.chart('BJP-UP-2009', {
             alpha: 45
         },
         backgroundColor: '#EDF2F4',
+        
     },
+    colors:pieColors,
+    
     title: {
         text: 'Party performance in Uttar Pradesh, seat-wise, 2009'
     },
@@ -547,6 +562,8 @@ Highcharts.chart('BJP-UP-2009', {
             ['Others', 4],
             
         ],
+        
+
     }]
 });
 
@@ -560,6 +577,7 @@ Highcharts.chart('BJP-UP-2014', {
         },
         backgroundColor: '#EDF2F4',
     },
+    colors:pieColors,
     title: {
         text: 'Party performance in Uttar Pradesh, seat-wise, 2014'
     },
