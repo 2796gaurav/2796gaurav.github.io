@@ -545,7 +545,7 @@ figcaption {
 }
 
 .work-image.cc-work-1 {
-  background-image: url('../images/article/all_things_gcp.jpeg');
+  background-image: url('../images/article/product_metrics/product_metrics.png');
   background-size: cover;
   filter: gray; /* IE6-9 */
   -webkit-filter: grayscale(1); /* Google Chrome, Safari 6+ & Opera 15+ */
@@ -558,7 +558,7 @@ figcaption {
 }
 
 .work-image.cc-work-2 {
-  background-image: url('../images/article/calculus/calc-logo.jpg');
+  background-image: url('../images/article/product-trap/product-trap.jpg');
   background-size: cover;
   background-size: cover;
   filter: gray; /* IE6-9 */
@@ -572,7 +572,7 @@ figcaption {
 }
 
 .work-image.cc-work-4 {
-  background-image: url('../images/article/product_metrics/product_metrics.png');
+  background-image: url('../images/article/calculus/calc-logo.jpg');
   background-size: cover;
   filter: gray; /* IE6-9 */
   -webkit-filter: grayscale(1); /* Google Chrome, Safari 6+ & Opera 15+ */
@@ -580,7 +580,7 @@ figcaption {
 }
 
 .work-image.cc-work-3 {
-  background-image: url('../images/article/best-unusual-product/logo-2.jpg');
+  background-image: url('../images/article/ml-pyramid-mini.PNG');
   background-size: cover;
   filter: gray; /* IE6-9 */
   -webkit-filter: grayscale(1); /* Google Chrome, Safari 6+ & Opera 15+ */
