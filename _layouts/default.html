@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
+    <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-text">
+                <span class="loading-char">G</span>
+                <span class="loading-char">A</span>
+                <span class="loading-char">U</span>
+                <span class="loading-char">R</span>
+                <span class="loading-char">A</span>
+                <span class="loading-char">V</span>
+            </div>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Particle Background -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="{{ '/' | relative_url }}">
+                    <span class="logo-text">GAURAV</span>
+                    <div class="logo-dot"></div>
+                </a>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="{{ '/' | relative_url }}" class="nav-link {% if page.url == '/' %}active{% endif %}">Portfolio</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ '/blog/' | relative_url }}" class="nav-link {% if page.url contains 'blog' %}active{% endif %}">Blog</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#contact" class="nav-link">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {{ content }}
+    </main>
+
+    <!-- Scripts -->
+    <script src="{{ '/assets/js/particles.js' | relative_url }}"></script>
+    <script src="{{ '/assets/js/animations.js' | relative_url }}"></script>
+</body>
+</html>

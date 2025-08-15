@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog | Gaurav's Portfolio & Blog</title>
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-text">
+                <span class="loading-char">G</span>
+                <span class="loading-char">A</span>
+                <span class="loading-char">U</span>
+                <span class="loading-char">R</span>
+                <span class="loading-char">A</span>
+                <span class="loading-char">V</span>
+            </div>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Particle Background -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/">
+                    <span class="logo-text">GAURAV</span>
+                    <div class="logo-dot"></div>
+                </a>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="/" class="nav-link ">Portfolio</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/blog/" class="nav-link active">Blog</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#contact" class="nav-link">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="blog-page">
+    <!-- Blog Header with Search -->
+    <section class="blog-header">
+        <div class="container">
+            <h1 class="page-title" data-reveal="">
+                <span class="title-text">Blog</span>
+                <span class="title-subtitle">Insights &amp; Discoveries</span>
+            </h1>
+            
+            <!-- Search Bar -->
+            <div class="search-container" data-reveal="">
+                <div class="search-wrapper">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search articles, topics, or technologies..." autocomplete="off" />
+                    <div class="search-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="21 21l-4.35-4.35" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog Content -->
+    <section class="blog-content">
+        <div class="container">
+            
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-content">
+                    <div class="empty-icon">📓</div>
+                    <h3>Blog Posts Coming Soon!</h3>
+                    <p>Add your Jupyter notebooks to the <code>notebooks/</code> directory and they'll automatically become blog posts.</p>
+                    <div class="jupyter-info">
+                        <h4>How it works:</h4>
+                        <ol>
+                            <li>Add <code>.ipynb</code> files to <code>notebooks/</code> folder</li>
+                            <li>Push to GitHub</li>
+                            <li>GitHub Actions converts them to blog posts</li>
+                            <li>Your blog is automatically updated!</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </section>
+</div>
+
+    </main>
+
+    <!-- Scripts -->
+    <script src="/assets/js/particles.js"></script>
+    <script src="/assets/js/animations.js"></script>
+</body>
+</html>

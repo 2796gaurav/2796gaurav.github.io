@@ -1,0 +1,190 @@
+name: Deploy Jekyll site with Jupyter conversion
+
+on:
+  push:
+    branches: [ main, master ]
+    paths: 
+      - 'notebooks/**/*.ipynb'
+      - '_posts/**'
+      - '_config.yml'
+      - '**/*.md'
+      - '**/*.html'
+      - 'assets/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  convert-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'pip'
+
+    - name: Install Python dependencies
+      run: |
+        pip install jupyter nbconvert[webpdf] jupyter-client ipykernel
+        pip install matplotlib seaborn pandas numpy scikit-learn plotly
+        pip install fastapi sqlalchemy psycopg2-binary python-jose passlib
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.1'
+        bundler-cache: true
+
+    - name: Create directories
+      run: |
+        mkdir -p _posts assets/images/posts
+
+    - name: Convert Jupyter notebooks to blog posts
+      run: |
+        echo "🔄 Converting Jupyter notebooks to blog posts..."
+        
+        if [ -d "notebooks" ] && [ "$(ls -A notebooks/*.ipynb 2>/dev/null)" ]; then
+          find notebooks -name "*.ipynb" -type f | while read notebook; do
+            echo "📓 Processing: $notebook"
+            
+            filename=$(basename "$notebook" .ipynb)
+            slug=$(echo "$filename" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+            current_date=$(date +"%Y-%m-%d")
+            
+            # Convert notebook
+            jupyter nbconvert \
+              --to markdown \
+              --output-dir _posts \
+              --output "${current_date}-${slug}" \
+              "$notebook" \
+              --TagRemovePreprocessor.enabled=True \
+              --TagRemovePreprocessor.remove_cell_tags="['remove_cell']" \
+              --ExecutePreprocessor.timeout=300 \
+              --allow-errors
+            
+            post_file="_posts/${current_date}-${slug}.md"
+            
+            if [ -f "$post_file" ]; then
+              temp_file=$(mktemp)
+              title=$(echo "$filename" | sed 's/_/ /g' | sed 's/-/ /g' | sed 's/\b\w/\U&/g')
+              
+              # Determine category
+              category="Technical"
+              content=$(head -50 "$post_file" | tr '[:upper:]' '[:lower:]')
+              
+              if echo "$content" | grep -q "machine learning\|ml\|model"; then
+                category="Machine Learning"
+              elif echo "$content" | grep -q "visualization\|plot\|chart"; then
+                category="Data Visualization"  
+              elif echo "$content" | grep -q "web\|api\|fastapi"; then
+                category="Web Development"
+              fi
+              
+              excerpt=$(grep -m1 "^[A-Z].*\.$" "$post_file" | head -c 150 | sed 's/[*#`]//g' || echo "Insights from Jupyter notebook analysis")
+              
+              # Create front matter
+              cat > "$temp_file" << EOF
+---
+layout: post
+title: "$title"
+date: $(date +"%Y-%m-%d %H:%M:%S %z")
+categories: [$category]
+tags: [jupyter, notebook, python, analysis]
+author: Gaurav
+excerpt: "$excerpt"
+notebook_source: "$notebook"
+read_time: "$(wc -w < "$post_file" | awk '{print int($1/200)+1}') min read"
+---
+
+EOF
+              
+              # Add content
+              echo "" >> "$temp_file"
+              sed '1,/^# /d' "$post_file" >> "$temp_file"
+              mv "$temp_file" "$post_file"
+              
+              echo "✅ Converted: $notebook → $post_file"
+            fi
+          done
+        else
+          echo "ℹ️ No notebooks found in notebooks/ directory"
+        fi
+
+    - name: Process notebook images
+      run: |
+        echo "🖼️ Processing notebook images..."
+        
+        find _posts -name "*_files" -type d | while read img_dir; do
+          if [ -d "$img_dir" ]; then
+            post_name=$(basename "$img_dir" _files)
+            target_dir="assets/images/posts/$post_name"
+            mkdir -p "$target_dir"
+            
+            find "$img_dir" -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.svg" \) | while read img; do
+              cp "$img" "$target_dir/"
+            done
+            
+            post_file="_posts/${post_name}.md"
+            if [ -f "$post_file" ]; then
+              sed -i.bak "s|${post_name}_files/|/assets/images/posts/${post_name}/|g" "$post_file"
+              rm -f "${post_file}.bak"
+            fi
+            
+            rm -rf "$img_dir"
+          fi
+        done
+
+    - name: Commit notebook conversions
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        git add _posts/ assets/ || true
+        
+        if ! git diff --staged --quiet; then
+          git commit -m "🤖 Convert Jupyter notebooks to blog posts
+          
+          - Processed notebooks from notebooks/ directory
+          - Added Jekyll front matter and metadata
+          - Organized images and assets
+          
+          Generated: $(date)"
+          
+          git push origin ${{ github.ref_name }}
+        fi
+
+    - name: Build Jekyll site
+      run: |
+        bundle install
+        bundle exec jekyll build --trace
+      env:
+        JEKYLL_ENV: production
+
+    - name: Upload Pages artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./_site
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+      
+    - name: Display deployment info
+      run: |
+        echo "🚀 Deployment completed!"
+        echo "📄 Site URL: ${{ steps.deployment.outputs.page_url }}"
