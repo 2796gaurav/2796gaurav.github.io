@@ -58,7 +58,7 @@ jobs:
       run: |
         echo "🔄 Converting Jupyter notebooks to blog posts..."
         
-        if [ -d "notebooks" ] && [ "$(ls -A notebooks/*.ipynb 2>/dev/null)" ]; then
+        if [ -d "notebooks" ] && [ "$(find notebooks -name '*.ipynb' -type f 2>/dev/null | head -1)" ]; then
           find notebooks -name "*.ipynb" -type f | while read notebook; do
             echo "📓 Processing: $notebook"
             
@@ -66,6 +66,7 @@ jobs:
             slug=$(echo "$filename" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
             current_date=$(date +"%Y-%m-%d")
             
+            # Convert notebook
             jupyter nbconvert \
               --to markdown \
               --output-dir _posts \
@@ -82,13 +83,14 @@ jobs:
               temp_file=$(mktemp)
               title=$(echo "$filename" | sed 's/_/ /g' | sed 's/-/ /g' | sed 's/\b\w/\U&/g')
               
+              # Determine category
               category="Technical"
               content=$(head -50 "$post_file" | tr '[:upper:]' '[:lower:]')
               
               if echo "$content" | grep -q "machine learning\|ml\|model"; then
                 category="Machine Learning"
               elif echo "$content" | grep -q "visualization\|plot\|chart"; then
-                category="Data Visualization"  
+                category="Data Visualization"
               elif echo "$content" | grep -q "web\|api\|fastapi"; then
                 category="Web Development"
               fi
@@ -96,20 +98,32 @@ jobs:
               excerpt=$(grep -m1 "^[A-Z].*\.$" "$post_file" | head -c 150 | sed 's/[*#`]//g' || echo "Insights from Jupyter notebook analysis")
               
               # Create front matter
-cat > "$temp_file" <<EOF
+              cat > "$temp_file" << 'FRONTMATTER'
 ---
 layout: post
-title: "$title"
-date: $(date +"%Y-%m-%d %H:%M:%S %z")
-categories: [$category]
+title: "TITLE_PLACEHOLDER"
+date: DATE_PLACEHOLDER
+categories: [CATEGORY_PLACEHOLDER]
 tags: [jupyter, notebook, python, analysis]
 author: Gaurav
-excerpt: "$excerpt"
-notebook_source: "$notebook"
-read_time: "$(wc -w < "$post_file" | awk '{print int($1/200)+1}') min read"
+excerpt: "EXCERPT_PLACEHOLDER"
+notebook_source: "NOTEBOOK_PLACEHOLDER"
+read_time: "READ_TIME_PLACEHOLDER"
 ---
-EOF
+
+FRONTMATTER
               
+              # Replace placeholders
+              sed -i "s/TITLE_PLACEHOLDER/$title/g" "$temp_file"
+              sed -i "s/DATE_PLACEHOLDER/$(date +"%Y-%m-%d %H:%M:%S %z")/g" "$temp_file"
+              sed -i "s/CATEGORY_PLACEHOLDER/$category/g" "$temp_file"
+              sed -i "s/EXCERPT_PLACEHOLDER/$excerpt/g" "$temp_file"
+              sed -i "s|NOTEBOOK_PLACEHOLDER|$notebook|g" "$temp_file"
+              sed -i "s/READ_TIME_PLACEHOLDER/$(wc -w < "$post_file" | awk '{print int($1/200)+1}') min read/g" "$temp_file"
+              
+              # Add content
+              echo "" >> "$temp_file"
+              echo "<!-- This post was automatically generated from a Jupyter notebook -->" >> "$temp_file"
               echo "" >> "$temp_file"
               sed '1,/^# /d' "$post_file" >> "$temp_file"
               mv "$temp_file" "$post_file"
@@ -125,32 +139,56 @@ EOF
       run: |
         echo "🖼️ Processing notebook images..."
         
-        find _posts -name "*_files" -type d | while read img_dir; do
+        find _posts -name "*_files" -type d 2>/dev/null | while read img_dir; do
           if [ -d "$img_dir" ]; then
+            echo "Processing: $img_dir"
             post_name=$(basename "$img_dir" _files)
             target_dir="assets/images/posts/$post_name"
             mkdir -p "$target_dir"
             
-            find "$img_dir" -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.svg" \) | while read img; do
+            find "$img_dir" -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.svg" -o -name "*.gif" \) | while read img; do
               cp "$img" "$target_dir/"
+              echo "Copied: $(basename "$img")"
             done
             
             post_file="_posts/${post_name}.md"
             if [ -f "$post_file" ]; then
               sed -i.bak "s|${post_name}_files/|/assets/images/posts/${post_name}/|g" "$post_file"
               rm -f "${post_file}.bak"
+              echo "Updated paths in: $post_file"
             fi
             
             rm -rf "$img_dir"
           fi
-        done
+        done || echo "No image directories found"
+
+    - name: Create search index
+      run: |
+        echo "🔍 Creating search index..."
+        cat > search.json << 'SEARCHEOF'
+---
+layout: null
+---
+[
+  {% for post in site.posts %}
+    {
+      "title"    : {{ post.title | jsonify }},
+      "category" : {{ post.categories | first | jsonify }},
+      "tags"     : {{ post.tags | join: ", " | jsonify }},
+      "url"      : {{ site.baseurl | append: post.url | jsonify }},
+      "date"     : {{ post.date | date: "%B %d, %Y" | jsonify }},
+      "content"  : {{ post.content | strip_html | strip_newlines | truncate: 300 | jsonify }}
+    } {% unless forloop.last %},{% endunless %}
+  {% endfor %}
+]
+SEARCHEOF
 
     - name: Commit notebook conversions
       run: |
         git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+        git config --local user.name "GitHub Action Bot"
         
-        git add _posts/ assets/ || true
+        git add _posts/ assets/ search.json || true
         
         if ! git diff --staged --quiet; then
           git commit -m "🤖 Convert Jupyter notebooks to blog posts
@@ -158,14 +196,19 @@ EOF
           - Processed notebooks from notebooks/ directory
           - Added Jekyll front matter and metadata
           - Organized images and assets
+          - Updated search index
           
           Generated: $(date)"
           
           git push origin ${{ github.ref_name }}
+          echo "✅ Changes committed and pushed"
+        else
+          echo "ℹ️ No changes to commit"
         fi
 
     - name: Build Jekyll site
       run: |
+        echo "🔨 Building Jekyll site..."
         bundle install
         bundle exec jekyll build --trace
       env:
@@ -182,5 +225,6 @@ EOF
       
     - name: Display deployment info
       run: |
-        echo "🚀 Deployment completed!"
+        echo "🚀 Deployment completed successfully!"
         echo "📄 Site URL: ${{ steps.deployment.outputs.page_url }}"
+        echo "✅ Your portfolio is live with automated Jupyter blog posts!"
