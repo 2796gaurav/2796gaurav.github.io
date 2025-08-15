@@ -66,7 +66,6 @@ jobs:
             slug=$(echo "$filename" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
             current_date=$(date +"%Y-%m-%d")
             
-            # Convert notebook
             jupyter nbconvert \
               --to markdown \
               --output-dir _posts \
@@ -83,7 +82,6 @@ jobs:
               temp_file=$(mktemp)
               title=$(echo "$filename" | sed 's/_/ /g' | sed 's/-/ /g' | sed 's/\b\w/\U&/g')
               
-              # Determine category
               category="Technical"
               content=$(head -50 "$post_file" | tr '[:upper:]' '[:lower:]')
               
@@ -98,7 +96,7 @@ jobs:
               excerpt=$(grep -m1 "^[A-Z].*\.$" "$post_file" | head -c 150 | sed 's/[*#`]//g' || echo "Insights from Jupyter notebook analysis")
               
               # Create front matter
-              cat > "$temp_file" << EOF
+cat > "$temp_file" <<EOF
 ---
 layout: post
 title: "$title"
@@ -110,10 +108,8 @@ excerpt: "$excerpt"
 notebook_source: "$notebook"
 read_time: "$(wc -w < "$post_file" | awk '{print int($1/200)+1}') min read"
 ---
-
 EOF
               
-              # Add content
               echo "" >> "$temp_file"
               sed '1,/^# /d' "$post_file" >> "$temp_file"
               mv "$temp_file" "$post_file"
