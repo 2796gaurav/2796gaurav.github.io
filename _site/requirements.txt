@@ -1,0 +1,15 @@
+jupyter
+nbconvert[webpdf]
+jupyter-client
+ipykernel
+matplotlib
+seaborn
+pandas
+numpy
+scikit-learn
+plotly
+fastapi
+sqlalchemy
+psycopg2-binary
+python-jose[cryptography]
+passlib[bcrypt]
