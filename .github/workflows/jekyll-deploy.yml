@@ -42,7 +42,6 @@ jobs:
       run: |
         pip install jupyter nbconvert[webpdf] jupyter-client ipykernel
         pip install matplotlib seaborn pandas numpy scikit-learn plotly
-        pip install fastapi sqlalchemy psycopg2-binary python-jose passlib
 
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
@@ -54,188 +53,127 @@ jobs:
       run: |
         mkdir -p _posts assets/images/posts
 
-    - name: Create conversion script
+    - name: Check for notebooks
+      id: check_notebooks
       run: |
-        cat > convert_notebooks.py << 'SCRIPT_END'
-        #!/usr/bin/env python3
-        import os
-        import sys
-        import subprocess
-        from pathlib import Path
-        from datetime import datetime
-        import re
+        if [ -d "notebooks" ] && [ -n "$(find notebooks -name '*.ipynb' -type f 2>/dev/null | head -1)" ]; then
+          echo "has_notebooks=true" >> $GITHUB_OUTPUT
+          echo "📓 Found notebooks to convert"
+        else
+          echo "has_notebooks=false" >> $GITHUB_OUTPUT
+          echo "ℹ️ No notebooks found"
+        fi
 
-        def clean_filename(filename):
-            """Convert filename to URL-friendly slug"""
-            slug = filename.lower()
-            slug = re.sub(r'[^a-z0-9]+', '-', slug)
-            slug = re.sub(r'^-|-$', '', slug)
-            return slug
-
-        def determine_category(content):
-            """Determine blog category based on content"""
-            content_lower = content.lower()
-            if any(term in content_lower for term in ['machine learning', 'ml', 'model', 'sklearn']):
-                return 'Machine Learning'
-            elif any(term in content_lower for term in ['visualization', 'plot', 'chart', 'matplotlib', 'seaborn']):
-                return 'Data Visualization'
-            elif any(term in content_lower for term in ['web', 'api', 'fastapi', 'flask']):
-                return 'Web Development'
-            else:
-                return 'Technical'
-
-        def convert_notebook(notebook_path):
-            """Convert a single notebook to blog post"""
-            print(f"📓 Processing: {notebook_path}")
+    - name: Convert notebooks if they exist
+      if: steps.check_notebooks.outputs.has_notebooks == 'true'
+      run: |
+        echo "🔄 Converting Jupyter notebooks to blog posts..."
+        
+        for notebook in notebooks/*.ipynb; do
+          if [ -f "$notebook" ]; then
+            echo "📓 Processing: $notebook"
             
-            # Get basic info
-            notebook_name = Path(notebook_path).stem
-            slug = clean_filename(notebook_name)
-            current_date = datetime.now().strftime("%Y-%m-%d")
-            output_name = f"{current_date}-{slug}"
+            # Extract filename and create slug
+            filename=$(basename "$notebook" .ipynb)
+            slug=$(echo "$filename" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+            current_date=$(date +"%Y-%m-%d")
+            output_name="${current_date}-${slug}"
             
-            # Convert using nbconvert
-            cmd = [
-                'jupyter', 'nbconvert',
-                '--to', 'markdown',
-                '--output-dir', '_posts',
-                '--output', output_name,
-                notebook_path,
-                '--TagRemovePreprocessor.enabled=True',
-                '--TagRemovePreprocessor.remove_cell_tags=["remove_cell"]',
-                '--ExecutePreprocessor.timeout=300',
-                '--allow-errors'
-            ]
+            # Convert notebook to markdown
+            jupyter nbconvert \
+              --to markdown \
+              --output-dir _posts \
+              --output "$output_name" \
+              "$notebook" \
+              --allow-errors || echo "Warning: Conversion failed for $notebook"
             
-            try:
-                subprocess.run(cmd, check=True, capture_output=True, text=True)
-            except subprocess.CalledProcessError as e:
-                print(f"❌ Failed to convert {notebook_path}: {e}")
-                return False
+            post_file="_posts/${output_name}.md"
             
-            # Process the generated markdown file
-            post_file = Path(f"_posts/{output_name}.md")
-            if not post_file.exists():
-                print(f"❌ Output file not created: {post_file}")
-                return False
-            
-            # Read content and determine category
-            content = post_file.read_text()
-            category = determine_category(content)
-            
-            # Create title from filename
-            title = notebook_name.replace('_', ' ').replace('-', ' ').title()
-            
-            # Extract excerpt
-            lines = content.split('\n')
-            excerpt = "Insights from Jupyter notebook analysis"
-            for line in lines:
-                if line.strip() and not line.startswith('#') and len(line.strip()) > 20:
-                    excerpt = line.strip()[:150]
-                    break
-            
-            # Count words for reading time
-            word_count = len(content.split())
-            read_time = max(1, word_count // 200)
-            
-            # Create front matter
-            front_matter = f"""---
-layout: post
-title: "{title}"
-date: {datetime.now().strftime("%Y-%m-%d %H:%M:%S %z")}
-categories: [{category}]
-tags: [jupyter, notebook, python, analysis]
-author: Gaurav
-excerpt: "{excerpt}"
-notebook_source: "{notebook_path}"
-read_time: "{read_time} min read"
----
-
-"""
-            
-            # Combine front matter with content
-            processed_content = front_matter + "<!-- This post was automatically generated from a Jupyter notebook -->\n\n" + content
-            
-            # Remove the first heading if it matches the title
-            processed_content = re.sub(r'^# .*?\n', '', processed_content, count=1)
-            
-            # Write the processed file
-            post_file.write_text(processed_content)
-            print(f"✅ Converted: {notebook_path} → {post_file}")
-            
-            # Handle images
-            images_dir = Path(f"_posts/{output_name}_files")
-            if images_dir.exists():
-                target_dir = Path(f"assets/images/posts/{output_name}")
-                target_dir.mkdir(parents=True, exist_ok=True)
+            if [ -f "$post_file" ]; then
+              # Create title from filename
+              title=$(echo "$filename" | sed 's/_/ /g' | sed 's/-/ /g' | sed 's/\b\w/\U&/g')
+              
+              # Simple category detection
+              category="Technical"
+              if grep -qi "machine.*learning\|ml\|model" "$post_file"; then
+                category="Machine Learning"
+              elif grep -qi "visualization\|plot\|chart" "$post_file"; then
+                category="Data Visualization"
+              elif grep -qi "web\|api\|fastapi" "$post_file"; then
+                category="Web Development"
+              fi
+              
+              # Create temporary file with front matter
+              temp_file=$(mktemp)
+              
+              # Write front matter line by line (avoiding heredoc)
+              echo "---" > "$temp_file"
+              echo "layout: post" >> "$temp_file"
+              echo "title: \"$title\"" >> "$temp_file"
+              echo "date: $(date +"%Y-%m-%d %H:%M:%S %z")" >> "$temp_file"
+              echo "categories: [$category]" >> "$temp_file"
+              echo "tags: [jupyter, notebook, python]" >> "$temp_file"
+              echo "author: Gaurav" >> "$temp_file"
+              echo "excerpt: \"Analysis and insights from Jupyter notebook\"" >> "$temp_file"
+              echo "---" >> "$temp_file"
+              echo "" >> "$temp_file"
+              echo "<!-- Generated from Jupyter notebook -->" >> "$temp_file"
+              echo "" >> "$temp_file"
+              
+              # Append original content (skip first line if it's a title)
+              if head -n1 "$post_file" | grep -q "^#"; then
+                tail -n +2 "$post_file" >> "$temp_file"
+              else
+                cat "$post_file" >> "$temp_file"
+              fi
+              
+              # Replace original file
+              mv "$temp_file" "$post_file"
+              
+              echo "✅ Converted: $notebook → $post_file"
+              
+              # Handle images if they exist
+              images_dir="_posts/${output_name}_files"
+              if [ -d "$images_dir" ]; then
+                target_dir="assets/images/posts/$output_name"
+                mkdir -p "$target_dir"
                 
-                # Copy images
-                for img_file in images_dir.rglob("*"):
-                    if img_file.is_file() and img_file.suffix.lower() in ['.png', '.jpg', '.jpeg', '.gif', '.svg']:
-                        target_file = target_dir / img_file.name
-                        target_file.write_bytes(img_file.read_bytes())
-                        print(f"📸 Copied: {img_file.name}")
+                # Copy image files
+                find "$images_dir" -name "*.png" -o -name "*.jpg" -o -name "*.svg" -o -name "*.gif" | while read img; do
+                  cp "$img" "$target_dir/"
+                  echo "📸 Copied: $(basename "$img")"
+                done
                 
                 # Update image paths in markdown
-                content = post_file.read_text()
-                content = content.replace(f"{output_name}_files/", f"/assets/images/posts/{output_name}/")
-                post_file.write_text(content)
+                sed -i "s|${output_name}_files/|/assets/images/posts/${output_name}/|g" "$post_file"
                 
-                # Remove temporary images directory
-                import shutil
-                shutil.rmtree(images_dir)
-                print(f"🗑️ Cleaned up: {images_dir}")
-            
-            return True
-
-        def main():
-            notebooks_dir = Path("notebooks")
-            
-            if not notebooks_dir.exists():
-                print("ℹ️ No notebooks directory found")
-                return
-            
-            notebook_files = list(notebooks_dir.glob("*.ipynb"))
-            
-            if not notebook_files:
-                print("ℹ️ No notebook files found in notebooks/ directory")
-                return
-            
-            print(f"🔄 Found {len(notebook_files)} notebook(s) to convert")
-            
-            success_count = 0
-            for notebook in notebook_files:
-                if convert_notebook(notebook):
-                    success_count += 1
-            
-            print(f"✅ Successfully converted {success_count}/{len(notebook_files)} notebooks")
-
-        if __name__ == "__main__":
-            main()
-        SCRIPT_END
-
-    - name: Convert notebooks to blog posts
-      run: python convert_notebooks.py
+                # Clean up temporary directory
+                rm -rf "$images_dir"
+              fi
+            else
+              echo "❌ Failed to create: $post_file"
+            fi
+          fi
+        done
 
     - name: Create search index
       run: |
-        cat > search.json << 'EOF'
-        ---
-        layout: null
-        ---
-        [
-          {% for post in site.posts %}
-            {
-              "title"    : {{ post.title | jsonify }},
-              "category" : {{ post.categories | first | jsonify }},
-              "tags"     : {{ post.tags | join: ", " | jsonify }},
-              "url"      : {{ site.baseurl | append: post.url | jsonify }},
-              "date"     : {{ post.date | date: "%B %d, %Y" | jsonify }},
-              "content"  : {{ post.content | strip_html | strip_newlines | truncate: 300 | jsonify }}
-            } {% unless forloop.last %},{% endunless %}
-          {% endfor %}
-        ]
-        EOF
+        echo "🔍 Creating search index..."
+        echo "---" > search.json
+        echo "layout: null" >> search.json
+        echo "---" >> search.json
+        echo "[" >> search.json
+        echo "  {% for post in site.posts %}" >> search.json
+        echo "    {" >> search.json
+        echo "      \"title\"    : {{ post.title | jsonify }}," >> search.json
+        echo "      \"category\" : {{ post.categories | first | jsonify }}," >> search.json
+        echo "      \"tags\"     : {{ post.tags | join: \", \" | jsonify }}," >> search.json
+        echo "      \"url\"      : {{ site.baseurl | append: post.url | jsonify }}," >> search.json
+        echo "      \"date\"     : {{ post.date | date: \"%B %d, %Y\" | jsonify }}," >> search.json
+        echo "      \"content\"  : {{ post.content | strip_html | strip_newlines | truncate: 300 | jsonify }}" >> search.json
+        echo "    } {% unless forloop.last %},{% endunless %}" >> search.json
+        echo "  {% endfor %}" >> search.json
+        echo "]" >> search.json
 
     - name: Commit notebook conversions
       run: |
@@ -245,9 +183,7 @@ read_time: "{read_time} min read"
         git add _posts/ assets/ search.json || true
         
         if ! git diff --staged --quiet; then
-          git commit -m "🤖 Convert Jupyter notebooks to blog posts
-          
-          Generated: $(date)"
+          git commit -m "🤖 Convert Jupyter notebooks to blog posts - $(date)"
           git push origin ${{ github.ref_name }}
           echo "✅ Changes committed and pushed"
         else
@@ -275,4 +211,4 @@ read_time: "{read_time} min read"
       run: |
         echo "🚀 Deployment completed successfully!"
         echo "📄 Site URL: ${{ steps.deployment.outputs.page_url }}"
-        echo "✅ Your portfolio is live!"
+        echo "✅ Your portfolio is live with automated blog posts!"
