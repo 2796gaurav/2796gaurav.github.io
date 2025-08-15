@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Data Visualization Analysis"
-date: 2025-08-15 07:01:52 +0000
+date: 2025-08-15 07:06:06 +0000
 categories: [Machine Learning]
 tags: [jupyter, notebook, python]
 author: Gaurav
@@ -20,7 +20,7 @@ This notebook explores modern data visualization techniques using matplotlib, se
 - Best practices for data storytelling
 
 
-```
+```python
 # Import visualization libraries
 import pandas as pd
 import numpy as np
@@ -43,7 +43,7 @@ print("📊 Visualization libraries loaded successfully!")
 Let's generate a comprehensive dataset for our visualization examples:
 
 
-```
+```python
 # Generate sample e-commerce dataset
 n_customers = 1000
 n_months = 12
@@ -83,7 +83,7 @@ sales_df.head()
 ### Distribution Analysis
 
 
-```
+```python
 # Create a comprehensive distribution analysis
 fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 fig.suptitle('Customer Demographics and Purchase Behavior Analysis', fontsize=16, y=0.98)
@@ -130,7 +130,7 @@ print(f"Average customer age: {customers['age'].mean():.1f} years")
 ## Time Series Analysis
 
 
-```
+```python
 # Monthly sales trends analysis
 monthly_metrics = sales_df.groupby('month').agg({
     'purchase_amount': ['sum', 'mean', 'count'],
@@ -177,6 +177,7 @@ axes[1,1].set_xlabel('Month')
 axes[1,1].set_ylabel('Unique Customers')
 axes[1,1].grid(True, alpha=0.3)
 
+
 plt.tight_layout()
 plt.show()
 
@@ -189,7 +190,7 @@ print(monthly_metrics)
 Creating interactive dashboards for better data exploration:
 
 
-```
+```python
 # Create interactive scatter plot
 fig_scatter = px.scatter(
     sales_df, 
@@ -236,7 +237,7 @@ print("🎯 Interactive visualizations created! Hover over points for detailed i
 ## Advanced Correlation Analysis
 
 
-```
+```python
 # Customer-level aggregation for correlation analysis
 customer_metrics = sales_df.groupby('customer_id').agg({
     'purchase_amount': ['sum', 'mean', 'count'],
