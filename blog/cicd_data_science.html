@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CI/CD for Data Science: Automating ML Model Deployment | Gaurav Chauhan</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.7;
+            color: #1a202c;
+            background: #ffffff;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+        h3 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            color: #4a5568;
+        }
+        p {
+            margin-bottom: 1.25rem;
+            color: #4a5568;
+        }
+        code {
+            background: #f7fafc;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e53e3e;
+        }
+        pre {
+            background: #1a202c;
+            color: #f7fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+        .meta {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        ul, ol {
+            margin: 1.25rem 0;
+            padding-left: 2rem;
+        }
+        li {
+            margin-bottom: 0.75rem;
+            color: #4a5568;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+            border-left: 4px solid #ef4444;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <article>
+        <h1>CI/CD for Data Science: Automating ML Model Deployment</h1>
+        
+        <div class="meta">
+            <time datetime="2024-03-05">March 5, 2024</time> • 14 min read
+        </div>
+
+        <p>Traditional CI/CD pipelines aren't designed for machine learning workflows. This guide explores how to build CI/CD pipelines specifically for data science teams, covering automated testing, model versioning, deployment strategies, and continuous learning methodologies.</p>
+
+        <h2>Why CI/CD for Data Science is Different</h2>
+        
+        <p>ML models have unique requirements compared to traditional software:</p>
+        
+        <ul>
+            <li><strong>Data dependencies:</strong> Models depend on training data, not just code</li>
+            <li><strong>Non-deterministic outputs:</strong> Model performance can vary between runs</li>
+            <li><strong>Large artifacts:</strong> Models can be gigabytes in size</li>
+            <li><strong>Performance metrics:</strong> Testing requires evaluation on datasets</li>
+            <li><strong>Versioning complexity:</strong> Need to version models, data, and code together</li>
+        </ul>
+
+        <h2>Pipeline Architecture</h2>
+
+        <pre><code>          
+   Code         Testing       Training  
+   Changes           Suite              Pipeline   
+          
+                                                   
+                                                   
+                           
+                         Validation         Model      
+                         & Metrics         Registry   
+                           
+                                                   
+                                                   
+                           
+                         Staging      Production  
+                         Deploy             Deploy     
+                           </code></pre>
+
+        <h2>Implementation with GitHub Actions</h2>
+
+        <pre><code># .github/workflows/ml-pipeline.yml
+name: ML Model CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'models/**'
+      - 'data/**'
+      - 'src/**'
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+      
+      - name: Run unit tests
+        run: pytest tests/unit --cov=src --cov-report=xml
+      
+      - name: Run data validation tests
+        run: pytest tests/data --verbose
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+  
+  train:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download training data
+        run: |
+          aws s3 sync s3://bucket/training-data/ ./data/train/
+      
+      - name: Train model
+        run: |
+          python scripts/train.py \
+            --data-dir ./data/train \
+            --output-dir ./models/artifacts
+      
+      - name: Evaluate model
+        run: |
+          python scripts/evaluate.py \
+            --model-path ./models/artifacts/model.pkl \
+            --test-data ./data/test
+      
+      - name: Check performance threshold
+        run: |
+          python scripts/check_metrics.py \
+            --metrics-file ./metrics.json \
+            --threshold 0.85
+      
+      - name: Upload model artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: model-v${{ github.sha }}
+          path: ./models/artifacts
+  
+  deploy-staging:
+    needs: train
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download model
+        uses: actions/download-artifact@v3
+        with:
+          name: model-v${{ github.sha }}
+      
+      - name: Deploy to staging
+        run: |
+          kubectl apply -f k8s/staging/
+          kubectl set image deployment/ml-service \
+            ml-service=gcr.io/project/model:${{ github.sha }}
+      
+      - name: Run smoke tests
+        run: |
+          pytest tests/integration --env staging
+  
+  deploy-production:
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Download model
+        uses: actions/download-artifact@v3
+        with:
+          name: model-v${{ github.sha }}
+      
+      - name: Register model version
+        run: |
+          python scripts/register_model.py \
+            --version ${{ github.sha }} \
+            --path ./models \
+            --metrics ./metrics.json
+      
+      - name: Deploy with canary
+        run: |
+          ./scripts/canary_deploy.sh ${{ github.sha }}</code></pre>
+
+        <h2>Model Versioning Strategy</h2>
+
+        <pre><code># model_registry.py
+from datetime import datetime
+import json
+import hashlib
+
+class ModelRegistry:
+    def __init__(self, storage_backend):
+        self.storage = storage_backend
+    
+    def register_model(
+        self,
+        model_path: str,
+        metrics: dict,
+        metadata: dict
+    ) -> str:
+        """Register model with versioning"""
+        version = self._generate_version(model_path, metrics)
+        
+        model_record = {
+            'version': version,
+            'timestamp': datetime.utcnow().isoformat(),
+            'metrics': metrics,
+            'metadata': metadata,
+            'model_path': model_path,
+            'checksum': self._calculate_checksum(model_path)
+        }
+        
+        self.storage.save(version, model_record)
+        return version
+    
+    def _generate_version(self, model_path: str, metrics: dict) -> str:
+        """Generate deterministic version hash"""
+        content = json.dumps({
+            'path': model_path,
+            'metrics': metrics
+        }, sort_keys=True)
+        return hashlib.sha256(content.encode()).hexdigest()[:12]</code></pre>
+
+        <h2>Automated Testing Framework</h2>
+
+        <pre><code># tests/test_model_performance.py
+import pytest
+from sklearn.metrics import accuracy_score
+import pandas as pd
+
+class TestModelPerformance:
+    @pytest.fixture
+    def model(self):
+        from src.models import load_model
+        return load_model('models/latest.pkl')
+    
+    @pytest.fixture
+    def test_data(self):
+        return pd.read_csv('data/test/test_set.csv')
+    
+    def test_minimum_accuracy(self, model, test_data):
+        """Ensure model meets minimum accuracy threshold"""
+        X = test_data.drop('target', axis=1)
+        y = test_data['target']
+        
+        predictions = model.predict(X)
+        accuracy = accuracy_score(y, predictions)
+        
+        assert accuracy >= 0.85, f"Accuracy {accuracy} below threshold 0.85"
+    
+    def test_prediction_latency(self, model, test_data):
+        """Ensure predictions are fast enough"""
+        import time
+        X = test_data.drop('target', axis=1).head(100)
+        
+        start = time.time()
+        _ = model.predict(X)
+        latency = time.time() - start
+        
+        # 100 predictions should take < 100ms
+        assert latency < 0.1, f"Latency {latency}s too high"
+    
+    def test_data_distribution(self, test_data):
+        """Ensure test data distribution is reasonable"""
+        assert len(test_data) > 1000, "Insufficient test data"
+        assert not test_data.isnull().any().any(), "Missing values in test data"</code></pre>
+
+        <h2>Continuous Learning Pipeline</h2>
+
+        <pre><code># scripts/continuous_learning.py
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import datetime, timedelta
+
+def check_model_drift():
+    """Check if model performance has degraded"""
+    current_metrics = get_production_metrics()
+    baseline_metrics = get_baseline_metrics()
+    
+    drift_score = calculate_drift(current_metrics, baseline_metrics)
+    
+    if drift_score > 0.1:  # 10% degradation
+        trigger_retraining()
+    
+def trigger_retraining():
+    """Automatically trigger model retraining"""
+    # This would trigger the training pipeline
+    pass
+
+default_args = {
+    'owner': 'data-team',
+    'depends_on_past': False,
+    'start_date': datetime(2024, 1, 1),
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5)
+}
+
+dag = DAG(
+    'continuous_learning',
+    default_args=default_args,
+    schedule_interval=timedelta(days=1),
+    catchup=False
+)
+
+drift_check = PythonOperator(
+    task_id='check_drift',
+    python_callable=check_model_drift,
+    dag=dag
+)</code></pre>
+
+        <h2>Best Practices</h2>
+
+        <div class="highlight-box">
+            <ul>
+                <li>Separate training and inference code for better testing</li>
+                <li>Use feature stores to ensure consistency between training and serving</li>
+                <li>Implement data versioning alongside model versioning</li>
+                <li>Set up monitoring for production model performance</li>
+                <li>Automate rollback procedures for failed deployments</li>
+                <li>Test with production-like data distributions</li>
+            </ul>
+        </div>
+
+        <h2>Conclusion</h2>
+
+        <p>CI/CD for data science requires adapting traditional practices to handle the unique challenges of ML models. By implementing comprehensive testing, proper versioning, and automated deployment pipelines, data science teams can deploy models reliably and confidently.</p>
+    </article>
+</body>
+</html>
+

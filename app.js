@@ -2,53 +2,104 @@
 const appData = {
   personal_info: {
     name: "Gaurav Chauhan",
-    title: "AI & Machine Learning",
-    bio: "I'm passionate about transforming complex data into actionable insights and building intelligent systems that solve real-world problems. With expertise in machine learning, data analysis, and software engineering, I enjoy sharing my journey through detailed technical writing.",
-    skills: ["Python", "Machine Learning", "Deep Learning", "Data Analysis", "TensorFlow/PyTorch", "SQL", "JavaScript", "Docker", "Git", "AWS"]
+    title: "Senior Machine Learning Engineer",
+    bio: "7+ years of experience specializing in MLOps, LLMops, Generative AI, Search Infrastructure, and Cloud platforms. Leading ML teams to build high-impact, compliant, and efficient machine learning systems. Open-source contributor to LangChain, Pandas, Microsoft Qlib, and more.",
+    skills: ["Python", "Machine Learning", "Deep Learning", "Generative AI", "LLMops", "MLOps", "TensorFlow/PyTorch", "Apache Airflow", "FastAPI", "AWS", "GCP", "Kubernetes", "Docker", "Typesense", "SQL", "MongoDB", "JavaScript", "Git"]
   },
   blog_posts: [
     {
-      title: "Data Visualisation Analysis temp",
-      date: "2024-02-15",
-      read_time: "12 min read",
-      excerpt: "Learn how to design and implement machine learning pipelines that scale from experimentation to production. We'll cover data validation, model versioning, automated testing, and deployment strategies using modern MLOps practices.",
-      filename: "data_visualization_analysis.html",
-      tags: ["Machine Learning", "MLOps", "Python", "Production"],
+      title: "Building Production-Ready LLMops Pipelines: From Development to Deployment",
+      date: "2024-03-20",
+      read_time: "15 min read",
+      excerpt: "A comprehensive guide to implementing LLMops best practices in production environments. Learn about model versioning, streaming chatbots, guardrails, security, and compliance frameworks for LLM deployments in fintech and enterprise applications.",
+      filename: "llmops_production_guide.html",
+      tags: ["LLMops", "Generative AI", "Production", "Fintech", "Compliance"],
       featured: true,
-      content: "machine learning pipeline production mlops deployment python scikit-learn tensorflow model versioning data validation automated testing ci cd docker kubernetes aws"
+      content: "llmops production deployment streaming chatbots guardrails security compliance fintech regulatory frameworks llm deployment model versioning continuous learning monitoring alerting"
     },
     {
-      title: "Machine learning pipeline temp",
-      date: "2024-02-08",
-      read_time: "8 min read",
-      excerpt: "Discover advanced data visualization techniques that go beyond bar charts and scatter plots. We'll explore interactive visualizations, storytelling with data, and how to choose the right visualization for your audience and message.",
-      filename: "machine_learning_pipeline.html",
-      tags: ["Data Visualization", "D3.js", "Python", "Storytelling"],
+      title: "High-Performance Search Infrastructure with Typesense: Achieving Sub-100ms Latency",
+      date: "2024-03-15",
+      read_time: "12 min read",
+      excerpt: "Deep dive into building scalable search infrastructure that delivers 100ms latency at scale. Explore segment-level recommendations, indexing strategies, query optimization, and real-world implementation patterns used in production trading platforms.",
+      filename: "search_infrastructure_typesense.html",
+      tags: ["Search Infrastructure", "Typesense", "Performance", "Architecture", "Real-time"],
       featured: true,
-      content: "data visualization storytelling d3js matplotlib plotly seaborn interactive charts dashboard design principles color theory data science python javascript"
-    }
+      content: "search infrastructure typesense latency optimization indexing query optimization segment-level recommendations real-time search production architecture scalability"
+    },
+    {
+      title: "Regulatory Frameworks for LLMs in Fintech: A Practical Implementation Guide",
+      date: "2024-03-10",
+      read_time: "18 min read",
+      excerpt: "Learn how to implement safe and compliant LLMs for financial products. This guide covers regulatory requirements, guardrails implementation, PII masking, audit trails, and compliance strategies for deploying AI chatbots in regulated industries.",
+      filename: "llm_fintech_compliance.html",
+      tags: ["LLMops", "Fintech", "Compliance", "Security", "Regulatory"],
+      featured: true,
+      content: "llm fintech compliance regulatory frameworks guardrails security pii masking audit trails financial services safe ai deployment regulatory requirements"
+    },
+    {
+      title: "CI/CD for Data Science: Automating ML Model Deployment",
+      date: "2024-03-05",
+      read_time: "14 min read",
+      excerpt: "Master the art of building CI/CD pipelines specifically designed for data science teams. From automated testing to model versioning, deployment strategies, and continuous learning methodologies that ensure reliable ML model releases.",
+      filename: "cicd_data_science.html",
+      tags: ["MLOps", "CI/CD", "DevOps", "Automation", "Deployment"],
+      featured: false,
+      content: "ci cd data science mlops automation deployment github actions model versioning automated testing continuous learning data validation pipeline orchestration"
+    },
+    {
+      title: "Building AI Trading Copilots: Real-time News Aggregation and Intelligent Assistance",
+      date: "2024-02-28",
+      read_time: "16 min read",
+      excerpt: "Architectural patterns and implementation strategies for building AI-powered trading assistants. Covering near real-time news aggregation, document Q&A, personalized chatbot interfaces, and intelligent human agent escalation systems.",
+      filename: "ai_trading_copilot.html",
+      tags: ["Generative AI", "Trading", "Real-time", "Chatbots", "Architecture"],
+      featured: true,
+      content: "ai trading copilot real-time news aggregation chatbot document qa personalized assistance human agent escalation trading platform architecture"
+    },
   ],
   portfolio_projects: [
     {
-      title: "Predictive Analytics Platform",
-      description: "End-to-end machine learning platform for retail forecasting, serving real-time predictions to 50K+ daily users with 99.9% uptime.",
-      tech_stack: ["Python", "TensorFlow", "Docker", "AWS", "React"],
-      github_url: "https://github.com/yourusername/predictive-platform",
-      demo_url: "https://demo.predictive-platform.com"
+      title: "AI Trading Copilot at Upstox",
+      description: "Led development of an AI-based Trading Copilot featuring near real-time news aggregation, internal documentation support, and personalized user assistance via chatbot interface with intelligent human agent escalation.",
+      tech_stack: ["Python", "Generative AI", "LLMops", "FastAPI", "Real-time Systems"],
+      github_url: "https://github.com/2796gaurav",
+      demo_url: "https://upstox.com/contact-us/"
     },
     {
-      title: "Real-time Data Pipeline", 
-      description: "Scalable data processing system handling 1M+ events per minute, built with Apache Kafka, Spark, and modern data engineering practices.",
-      tech_stack: ["Apache Kafka", "Spark", "Python", "AWS", "MongoDB"],
-      github_url: "https://github.com/yourusername/data-pipeline",
-      demo_url: "https://pipeline-dashboard.demo.com"
+      title: "High-Performance Search Infrastructure", 
+      description: "Established search infrastructure achieving 100ms latency with segment-level recommendations using Typesense. Designed for high-throughput, low-latency search operations in production trading platform.",
+      tech_stack: ["Typesense", "Python", "Search Architecture", "Performance Optimization"],
+      github_url: "https://github.com/2796gaurav",
+      demo_url: null
     },
     {
-      title: "NLP Research Tool",
-      description: "Academic research platform for natural language processing experiments, featuring transformer fine-tuning and custom evaluation metrics.",
-      tech_stack: ["PyTorch", "Transformers", "FastAPI", "Vue.js", "PostgreSQL"],
-      github_url: "https://github.com/yourusername/nlp-research",
-      demo_url: "https://nlp-tool.research.demo.com"
+      title: "Health Pre-Policy Digitalization System",
+      description: "Engineered best-in-class health pre-policy digitalization process using AWS Textract (OCR) and custom NLP architecture, increasing bottom line by 40% and significantly improving data enrichment.",
+      tech_stack: ["AWS Textract", "NLP", "OCR", "Python", "FastAPI"],
+      github_url: "https://github.com/2796gaurav",
+      demo_url: null
+    },
+    {
+      title: "Fraud Detection & Knowledge Graph System",
+      description: "Implemented cutting-edge fraud detection and knowledge graph architecture for motor and health claims, improving real-time fraud identification and cross-selling capabilities at Bajaj Allianz.",
+      tech_stack: ["Knowledge Graphs", "Graph Neural Networks", "Python", "Machine Learning"],
+      github_url: "https://github.com/2796gaurav",
+      demo_url: null
+    },
+    {
+      title: "Quantitative Analysis System for Investments",
+      description: "Built custom quantitative analysis system for investments team with forecasting models, portfolio optimization, news sentiment analysis, asset class overviews, and weighting calculations.",
+      tech_stack: ["Python", "Machine Learning", "Sentiment Analysis", "Portfolio Optimization"],
+      github_url: "https://github.com/2796gaurav",
+      demo_url: null
+    },
+    {
+      title: "News Recommendation Engine",
+      description: "Created NLP-based recommendation engine for market articles at Moneycontrol, achieving 42% conversion rate for accurately predicting users' next article interests.",
+      tech_stack: ["NLP", "Recommendation Systems", "Python", "Machine Learning"],
+      github_url: "https://github.com/2796gaurav",
+      demo_url: null
     }
   ]
 };
@@ -266,38 +317,42 @@ function loadPortfolioProjects() {
 }
 
 function createProjectCard(project) {
-  const card = document.createElement('div');
-  card.className = 'project-card';
+  const listItem = document.createElement('li');
+  listItem.className = 'project-item';
 
   const techTags = project.tech_stack.map(tech => 
     `<span class="tech-tag">${tech}</span>`
   ).join('');
 
-  card.innerHTML = `
-    <div class="project-card__content">
-      <h3 class="project-card__title">${project.title}</h3>
-      <p class="project-card__description">${project.description}</p>
-      <div class="project-card__tech">${techTags}</div>
-      <div class="project-card__links">
-        <a href="${project.github_url}" target="_blank" class="project-link">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-          </svg>
-          GitHub
-        </a>
-        <a href="${project.demo_url}" target="_blank" class="project-link">
+  const demoLink = project.demo_url ? `
+        <a href="${project.demo_url}" target="_blank" class="project-link" aria-label="View demo">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
             <polyline points="15,3 21,3 21,9"></polyline>
             <line x1="10" y1="14" x2="21" y2="3"></line>
           </svg>
-          Demo
+          <span>Demo</span>
         </a>
+  ` : '';
+
+  listItem.innerHTML = `
+    <div class="project-item__header">
+      <h3 class="project-item__title">${project.title}</h3>
+      <div class="project-item__links">
+        <a href="${project.github_url}" target="_blank" class="project-link" aria-label="View on GitHub">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+          </svg>
+          <span>GitHub</span>
+        </a>
+        ${demoLink}
       </div>
     </div>
+    <p class="project-item__description">${project.description}</p>
+    <div class="project-item__tech">${techTags}</div>
   `;
 
-  return card;
+  return listItem;
 }
 
 // Load blog posts
@@ -387,7 +442,7 @@ function showBlogPost(post) {
 
   // Update page title (optional)
   if (post.title) {
-    document.title = `${post.title} - Your Blog Name`;
+    document.title = `${post.title} - Gaurav Chauhan`;
   }
 }
 

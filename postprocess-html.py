@@ -27,14 +27,14 @@ def process_html_for_iframe(html_file):
             '<head>',
             '<head>\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">'
         )
-        print("✓ Added responsive meta tag")
+        print(" Added responsive meta tag")
     
     # 2. Ensure Plotly.js is loaded from CDN
     plotly_cdn = '<script src="https://cdn.plot.ly/plotly-2.25.2.min.js"></script>'
     
     if 'plotly' in html_content.lower() and plotly_cdn not in html_content:
         html_content = html_content.replace('</head>', f'    {plotly_cdn}\n</head>')
-        print("✓ Added Plotly.js CDN")
+        print(" Added Plotly.js CDN")
     
     # 3. Add iframe-specific CSS
     iframe_css = '''
@@ -102,7 +102,7 @@ table th, table td {
     # Insert CSS before closing head tag
     if '</head>' in html_content:
         html_content = html_content.replace('</head>', iframe_css + '\n</head>')
-        print("✓ Added iframe-specific CSS")
+        print(" Added iframe-specific CSS")
     
     # 4. Add height communication script
     iframe_script = '''
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     # Insert script before closing body tag
     html_content = html_content.replace('</body>', iframe_script + '\n</body>')
-    print("✓ Added height communication script")
+    print(" Added height communication script")
     
     # 5. Make external links open in new tab
     html_content = re.sub(
@@ -171,13 +171,13 @@ document.addEventListener('DOMContentLoaded', function() {
         r'<a \1 target="_blank" rel="noopener noreferrer">',
         html_content
     )
-    print("✓ Set external links to open in new tab")
+    print(" Set external links to open in new tab")
     
     # Write the processed HTML back
     with open(html_file, 'w', encoding='utf-8') as f:
         f.write(html_content)
     
-    print(f"✓ Successfully processed {html_file}")
+    print(f" Successfully processed {html_file}")
     return True
 
 if __name__ == "__main__":
@@ -188,8 +188,8 @@ if __name__ == "__main__":
     
     html_file = sys.argv[1]
     if process_html_for_iframe(html_file):
-        print("🚀 HTML file is now iframe-ready!")
-        print("📝 The file can now be loaded in an iframe with working Plotly visualizations.")
+        print(" HTML file is now iframe-ready!")
+        print(" The file can now be loaded in an iframe with working Plotly visualizations.")
     else:
-        print("❌ Processing failed!")
+        print(" Processing failed!")
         sys.exit(1)

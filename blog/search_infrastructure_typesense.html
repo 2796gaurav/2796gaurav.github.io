@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High-Performance Search Infrastructure with Typesense: Achieving Sub-100ms Latency | Gaurav Chauhan</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.7;
+            color: #1a202c;
+            background: #ffffff;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+        h3 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            color: #4a5568;
+        }
+        p {
+            margin-bottom: 1.25rem;
+            color: #4a5568;
+        }
+        code {
+            background: #f7fafc;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e53e3e;
+        }
+        pre {
+            background: #1a202c;
+            color: #f7fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+        .meta {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        ul, ol {
+            margin: 1.25rem 0;
+            padding-left: 2rem;
+        }
+        li {
+            margin-bottom: 0.75rem;
+            color: #4a5568;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+            border-left: 4px solid #ef4444;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <article>
+        <h1>High-Performance Search Infrastructure with Typesense: Achieving Sub-100ms Latency</h1>
+        
+        <div class="meta">
+            <time datetime="2024-03-15">March 15, 2024</time> • 12 min read
+        </div>
+
+        <p>In production trading platforms, search latency directly impacts user experience and revenue. This deep dive explores how we built a search infrastructure achieving consistent sub-100ms latency using Typesense, covering indexing strategies, query optimization, and segment-level recommendations at scale.</p>
+
+        <h2>Why Typesense for Production Search?</h2>
+        
+        <p>Typesense offers several advantages over Elasticsearch or Algolia for real-time search requirements:</p>
+        
+        <ul>
+            <li><strong>Typo tolerance:</strong> Built-in typo handling without additional configuration</li>
+            <li><strong>Low latency:</strong> Optimized for speed with typical response times under 50ms</li>
+            <li><strong>Simple API:</strong> RESTful interface that's easy to integrate</li>
+            <li><strong>Real-time updates:</strong> Near-instant index updates without rebuild delays</li>
+            <li><strong>Flexible ranking:</strong> Customizable relevance algorithms</li>
+        </ul>
+
+        <h2>Architecture Overview</h2>
+
+        <p>Our production architecture consists of:</p>
+
+        <pre><code>          
+   Client      API Gateway   Typesense  
+  Requests           (FastAPI)          Cluster   
+          
+                                                 
+                                                 
+                         
+                       Redis             PostgreSQL 
+                       Cache              Metadata  
+                         </code></pre>
+
+        <h3>1. Schema Design for Optimal Performance</h3>
+
+        <p>Careful schema design is crucial for achieving low latency:</p>
+
+        <pre><code>from typesense import Client
+
+client = Client({
+    'nodes': [{
+        'host': 'typesense.example.com',
+        'port': '8108',
+        'protocol': 'https'
+    }],
+    'api_key': 'your-api-key',
+    'connection_timeout_seconds': 2
+})
+
+# Optimal schema for trading instruments
+schema = {
+    'name': 'instruments',
+    'fields': [
+        {'name': 'id', 'type': 'string'},
+        {'name': 'symbol', 'type': 'string'},
+        {'name': 'company_name', 'type': 'string'},
+        {'name': 'sector', 'type': 'string', 'facet': True},
+        {'name': 'market_cap', 'type': 'int32', 'sort': True},
+        {'name': 'volume', 'type': 'int32', 'sort': True},
+        {'name': 'popularity', 'type': 'int32', 'sort': True},
+        # Vector field for semantic search
+        {'name': 'embedding', 'type': 'float[]', 'embed': {
+            'from': ['company_name', 'symbol'],
+            'model_config': {
+                'model_name': 'ts/e5-small'
+            }
+        }}
+    ],
+    'default_sorting_field': 'popularity'
+}
+
+# Create collection
+client.collections.create(schema)</code></pre>
+
+        <div class="highlight-box">
+            <strong>Key Design Decisions:</strong>
+            <ul>
+                <li>Use <code>string</code> type for exact matches, <code>string[]</code> for arrays</li>
+                <li>Mark frequently filtered fields as <code>facet: true</code></li>
+                <li>Use <code>int32</code> or <code>float</code> for numeric sorting</li>
+                <li>Enable embeddings for semantic search capabilities</li>
+            </ul>
+        </div>
+
+        <h3>2. Indexing Strategy</h3>
+
+        <p>Efficient indexing is the foundation of fast search:</p>
+
+        <pre><code>import asyncio
+from typing import List, Dict
+from typesense import Client
+
+class TypesenseIndexer:
+    def __init__(self, client: Client, batch_size: int = 100):
+        self.client = client
+        self.batch_size = batch_size
+    
+    async def bulk_index(self, documents: List[Dict], collection: str):
+        """Batch indexing with error handling"""
+        batches = [
+            documents[i:i + self.batch_size]
+            for i in range(0, len(documents), self.batch_size)
+        ]
+        
+        for batch in batches:
+            try:
+                result = self.client.collections[collection].documents.import(
+                    batch,
+                    {'action': 'create'}
+                )
+                # Handle partial failures
+                if result['failed'] > 0:
+                    self._handle_failures(result['errors'])
+            except Exception as e:
+                self._handle_indexing_error(e, batch)
+    
+    async def incremental_update(self, document: Dict, collection: str):
+        """Update single document for real-time updates"""
+        try:
+            self.client.collections[collection].documents.upsert(document)
+        except Exception as e:
+            # Retry logic
+            await self._retry_update(document, collection, retries=3)
+    
+    def _handle_failures(self, errors: List[Dict]):
+        """Log and potentially requeue failed documents"""
+        for error in errors:
+            if error['error'] not in ['already_exists']:
+                # Send to dead letter queue
+                self._send_to_dlq(error['document'])</code></pre>
+
+        <h3>3. Query Optimization Techniques</h3>
+
+        <p>Optimize queries for both speed and relevance:</p>
+
+        <pre><code>class OptimizedSearch:
+    def __init__(self, client: Client):
+        self.client = client
+        self.cache = {}  # Redis would be used in production
+    
+    def search(
+        self,
+        query: str,
+        collection: str,
+        filters: Dict = None,
+        page: int = 1,
+        per_page: int = 20
+    ) -> Dict:
+        # Build optimized query parameters
+        search_params = {
+            'q': query,
+            'query_by': 'company_name,symbol',
+            'query_by_weights': '3,2',  # Company name is more important
+            'num_typos': 2,  # Allow typos for better UX
+            'facet_by': 'sector',
+            'sort_by': '_text_match:desc,popularity:desc',
+            'page': page,
+            'per_page': per_page,
+            'prioritize_exact_match': True
+        }
+        
+        # Add filters if provided
+        if filters:
+            search_params['filter_by'] = self._build_filter_string(filters)
+        
+        # Check cache first
+        cache_key = self._generate_cache_key(search_params)
+        if cache_key in self.cache:
+            return self.cache[cache_key]
+        
+        # Execute search
+        results = self.client.collections[collection].documents.search(
+            search_params
+        )
+        
+        # Cache results for common queries
+        if page == 1:  # Only cache first page
+            self.cache[cache_key] = results
+        
+        return results
+    
+    def segment_level_search(
+        self,
+        query: str,
+        user_segment: str,
+        collection: str
+    ) -> Dict:
+        """Segment-aware search with personalized ranking"""
+        search_params = {
+            'q': query,
+            'query_by': 'company_name,symbol',
+            # Boost results based on segment preferences
+            'boost_by': {
+                f'{user_segment}_popularity': {
+                    'factor': 2.0
+                }
+            },
+            'filter_by': f'segments:{user_segment}',
+            'sort_by': '_text_match:desc'
+        }
+        
+        return self.client.collections[collection].documents.search(
+            search_params
+        )</code></pre>
+
+        <h3>4. Caching Strategy</h3>
+
+        <p>Multi-layer caching significantly reduces latency:</p>
+
+        <pre><code>import redis
+import json
+import hashlib
+
+class SearchCache:
+    def __init__(self, redis_client: redis.Redis):
+        self.redis = redis_client
+        self.ttl_short = 300  # 5 minutes for frequent queries
+        self.ttl_long = 3600  # 1 hour for trending queries
+    
+    def get(self, cache_key: str) -> Dict:
+        cached = self.redis.get(cache_key)
+        if cached:
+            return json.loads(cached)
+        return None
+    
+    def set(self, cache_key: str, data: Dict, query_type: str = 'normal'):
+        ttl = self.ttl_short if query_type == 'trending' else self.ttl_long
+        self.redis.setex(
+            cache_key,
+            ttl,
+            json.dumps(data)
+        )
+    
+    def generate_key(self, params: Dict) -> str:
+        """Generate consistent cache key from search parameters"""
+        key_string = json.dumps(params, sort_keys=True)
+        return f"search:{hashlib.md5(key_string.encode()).hexdigest()}"</code></pre>
+
+        <h2>Performance Optimization Techniques</h2>
+
+        <h3>1. Connection Pooling</h3>
+
+        <pre><code>from typesense import Client
+from urllib3.util.retry import Retry
+import requests
+
+# Configure connection pool
+session = requests.Session()
+adapter = requests.adapters.HTTPAdapter(
+    pool_connections=10,
+    pool_maxsize=20,
+    max_retries=Retry(
+        total=3,
+        backoff_factor=0.3,
+        status_forcelist=[500, 502, 503, 504]
+    )
+)
+session.mount('https://', adapter)
+
+client = Client({
+    'nodes': [{'host': 'typesense.example.com', 'port': '8108', 'protocol': 'https'}],
+    'api_key': 'your-api-key',
+    'connection_timeout_seconds': 1,  # Aggressive timeout
+    'num_retries': 2,
+    'retry_interval_seconds': 0.1
+}, connection_pool_manager=session)</code></pre>
+
+        <h3>2. Parallel Query Execution</h3>
+
+        <pre><code>import asyncio
+from typing import List
+
+async def parallel_searches(
+    queries: List[str],
+    collection: str,
+    client: Client
+) -> List[Dict]:
+    """Execute multiple searches in parallel"""
+    tasks = [
+        asyncio.to_thread(
+            client.collections[collection].documents.search,
+            {'q': query, 'per_page': 10}
+        )
+        for query in queries
+    ]
+    return await asyncio.gather(*tasks)</code></pre>
+
+        <h2>Monitoring and Alerting</h2>
+
+        <p>Key metrics to monitor:</p>
+
+        <ul>
+            <li><strong>P95/P99 latency:</strong> Ensure consistent sub-100ms performance</li>
+            <li><strong>Query rate:</strong> Track queries per second</li>
+            <li><strong>Error rate:</strong> Monitor failed queries</li>
+            <li><strong>Cache hit rate:</strong> Optimize caching effectiveness</li>
+            <li><strong>Index size:</strong> Track memory usage</li>
+        </ul>
+
+        <pre><code>from prometheus_client import Histogram, Counter
+
+search_latency = Histogram(
+    'typesense_search_latency_seconds',
+    'Search latency in seconds',
+    ['collection', 'query_type']
+)
+
+search_errors = Counter(
+    'typesense_search_errors_total',
+    'Total search errors',
+    ['collection', 'error_type']
+)
+
+def instrumented_search(func):
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        try:
+            result = func(*args, **kwargs)
+            latency = time.time() - start
+            search_latency.labels(
+                collection=kwargs.get('collection'),
+                query_type=kwargs.get('query_type', 'default')
+            ).observe(latency)
+            return result
+        except Exception as e:
+            search_errors.labels(
+                collection=kwargs.get('collection'),
+                error_type=type(e).__name__
+            ).inc()
+            raise
+    return wrapper</code></pre>
+
+        <h2>Conclusion</h2>
+
+        <p>Achieving sub-100ms search latency requires careful attention to schema design, query optimization, caching strategies, and infrastructure tuning. Typesense provides an excellent foundation, but proper implementation patterns are essential for production workloads.</p>
+
+        <p>Key takeaways:</p>
+        <ul>
+            <li>Design schemas with performance in mind from the start</li>
+            <li>Implement multi-layer caching for common queries</li>
+            <li>Use connection pooling and parallel queries</li>
+            <li>Monitor metrics continuously and set up alerts</li>
+            <li>Test with realistic production workloads</li>
+        </ul>
+    </article>
+</body>
+</html>
+
