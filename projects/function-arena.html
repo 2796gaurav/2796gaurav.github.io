@@ -621,14 +621,19 @@
 
     .loader-overlay {
       position: fixed;
-      inset: 0;
-      background: rgba(5, 5, 5, 0.95);
+      bottom: 20px;
+      right: 20px;
+      background: var(--panel);
+      border: 2px solid var(--acid);
+      padding: 15px 20px;
       z-index: 10001;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 30px;
+      gap: 10px;
+      min-width: 250px;
+      box-shadow: var(--hard-shadow);
+      opacity: 0.9;
     }
 
     .loader-overlay.hidden {
@@ -636,10 +641,10 @@
     }
 
     .loader-spinner {
-      width: 60px;
-      height: 60px;
-      border: 4px solid var(--panel);
-      border-top: 4px solid var(--acid);
+      width: 30px;
+      height: 30px;
+      border: 3px solid var(--panel);
+      border-top: 3px solid var(--acid);
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
@@ -691,15 +696,15 @@
     .loader-text {
       color: var(--acid);
       font-family: 'Clash Display', sans-serif;
-      font-size: 1.5rem;
+      font-size: 0.9rem;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.05em;
       text-align: center;
     }
 
     .loader-progress {
-      width: 300px;
-      height: 4px;
+      width: 200px;
+      height: 3px;
       background: var(--panel);
       border: 1px solid var(--text-main);
       position: relative;
@@ -711,7 +716,7 @@
       background: var(--acid);
       width: 0%;
       transition: width 0.3s ease;
-      box-shadow: 0 0 10px var(--acid);
+      box-shadow: 0 0 5px var(--acid);
     }
 
     .test-loader {
@@ -826,13 +831,12 @@
 
     <div class="loader-overlay" id="modelLoader">
     <div class="loader-spinner"></div>
-    <div class="loader-text" id="loaderText">LOADING MODEL</div>
+    <div class="loader-text" id="loaderText">Loading AI Model</div>
     <div class="loader-progress">
       <div class="loader-progress-bar" id="modelProgressBar"></div>
     </div>
-    <div id="loaderSubtext" style="color: var(--text-muted); font-size: 0.9rem; text-align: center; max-width: 400px;">
-      Initializing model loader...<br>
-      <span id="deviceInfo" style="color: var(--acid); font-size: 0.85rem;"></span>
+    <div id="loaderSubtext" style="color: var(--text-muted); font-size: 0.75rem; text-align: center; max-width: 200px;">
+      <span id="deviceInfo"></span>
     </div>
   </div>
 
@@ -1510,34 +1514,82 @@
     loadState();
 
     // Boot Sequence
+    // Boot Sequence
     async function bootSequence() {
-      const bootLines = [
-        "INITIALIZING FUNCTION ARENA v2.0...",
-        "OPTIMIZING MODEL LOAD [Q4 QUANTIZATION + GPU]...",
-        "LOADING NEURAL WEIGHTS [onnx-community/functiongemma-270m]...",
-        "MOUNTING EDUCATION MODULE...",
-        "ESTABLISHING SEMANTIC PARSER...",
-        "INDEXING FUNCTION SCHEMA LIBRARY...",
-        "TRAINING ENVIRONMENT READY.",
-        "SYSTEM ONLINE."
+      const instructions = [
+        "🎯 WELCOME TO FUNCTION ARENA",
+        "",
+        "Your mission: Create precise function definitions that trigger",
+        "in the RIGHT scenarios and stay silent in the WRONG ones.",
+        "",
+        "📝 HOW TO PLAY:",
+        "1. Review test scenarios - some should trigger (✓), others shouldn't (✗)",
+        "2. Write your function with a clear name and description",
+        "3. Add parameters with proper types and descriptions",
+        "4. Use enums to constrain values when appropriate",
+        "5. Test your function against all scenarios",
+        "",
+        "💡 KEY TIPS:",
+        "• Function names matter: 'get_weather' beats 'do_stuff'",
+        "• Descriptions are KEY - AI reads this to decide when to call",
+        "• Be specific about WHAT your function does AND what it doesn't",
+        "• Use enums wisely to constrain inputs and clarify intent",
+        "",
+        "📊 SCORING:",
+        "+100 points for correct triggers (when you SHOULD)",
+        "-50 points for incorrect triggers (when you SHOULDN'T)",
+        "+50 bonus for correctly NOT triggering (when you SHOULDN'T)",
+        "",
+        "⏳ Please read the instructions above carefully...",
+        "   Model is loading in the background (may take a moment on first load)"
       ];
       
       const container = document.getElementById('boot-sequence');
+      container.style.justifyContent = 'center';
+      container.style.padding = '60px 40px';
       
-      for(let i=0; i<bootLines.length; i++) {
-        const line = document.createElement('div');
-        line.className = 'boot-line';
-        line.textContent = `> ${bootLines[i]}`;
-        container.appendChild(line);
+      // Create instruction content
+      const instructionBox = document.createElement('div');
+      instructionBox.style.cssText = `
+        max-width: 800px;
+        line-height: 1.8;
+        font-size: 16px;
+      `;
+      
+      instructions.forEach((line, i) => {
+        const div = document.createElement('div');
+        div.className = 'boot-line';
+        div.textContent = line;
+        div.style.marginBottom = line === '' ? '10px' : '5px';
+        div.style.fontSize = line.includes('🎯') ? '24px' : 
+                            line.includes('📝') || line.includes('💡') || line.includes('📊') || line.includes('⏳') ? '18px' : '16px';
+        div.style.fontWeight = line.includes('🎯') || line.includes('📝') || line.includes('💡') || line.includes('📊') || line.includes('⏳') ? 'bold' : 'normal';
+        div.style.color = line.includes('⏳') ? 'var(--text-muted)' : 'var(--acid)';
+        instructionBox.appendChild(div);
         
-        line.offsetHeight;
-        line.style.opacity = 1;
-        line.style.transform = "translateY(0)";
-        
-        await new Promise(r => setTimeout(r, 400));
-      }
-
-      await loadModel();
+        // Animate in
+        setTimeout(() => {
+          div.style.opacity = 1;
+          div.style.transform = "translateY(0)";
+        }, i * 80);
+      });
+      
+      container.innerHTML = '';
+      container.appendChild(instructionBox);
+      
+      // Start model loading in background IMMEDIATELY
+      const modelLoadPromise = loadModel();
+      
+      // Give users time to read instructions (minimum 8 seconds)
+      // Then wait for model if it's still loading
+      await new Promise(r => setTimeout(r, 8000));
+      
+      // Update last instruction to show we're waiting for model
+      const lastInstruction = instructionBox.lastChild;
+      lastInstruction.textContent = "⏳ Waiting for model to finish loading...";
+      lastInstruction.style.color = 'var(--acid)';
+      
+      await modelLoadPromise;
 
       container.style.transition = "opacity 0.5s";
       container.style.opacity = 0;
@@ -1549,7 +1601,7 @@
         toggleRules(); // Show rules on first load
       }, 500);
     }
-
+    
     async function loadModel() {
       const loadStartTime = performance.now();
       const loader = document.getElementById('modelLoader');
@@ -1566,17 +1618,17 @@
       
       // Update device info
       if (hasWebGPU) {
-        deviceInfo.textContent = '✓ WebGPU detected - GPU acceleration enabled';
+        deviceInfo.textContent = 'Using GPU acceleration';
         deviceInfo.style.color = 'var(--success)';
       } else {
-        deviceInfo.textContent = '⚠ WebGPU unavailable - using CPU (WASM)';
+        deviceInfo.textContent = 'Using CPU (may be slower)';
         deviceInfo.style.color = 'var(--text-muted)';
       }
       
       try {
         // Step 1: Import library
-        loaderText.textContent = 'IMPORTING TRANSFORMERS.JS';
-        loaderSubtext.innerHTML = 'Loading library from CDN...<br><span style="color: var(--text-muted); font-size: 0.85rem;">~2MB download</span>';
+        loaderText.textContent = 'Loading AI Engine';
+        loaderSubtext.innerHTML = '<span style="color: var(--text-muted); font-size: 0.75rem;">Preparing...</span>';
         progressBar.style.width = '15%';
         
         const { env, AutoTokenizer, AutoModelForCausalLM } = await import(
@@ -1588,8 +1640,8 @@
         env.useBrowserCache = true; // Enable browser cache explicitly
 
         // Step 2: Load tokenizer
-        loaderText.textContent = 'LOADING TOKENIZER';
-        loaderSubtext.innerHTML = 'Loading tokenizer configuration...<br><span style="color: var(--text-muted); font-size: 0.85rem;">Checking cache...</span>';
+        loaderText.textContent = 'Loading AI Engine';
+        loaderSubtext.innerHTML = '<span style="color: var(--text-muted); font-size: 0.75rem;">Preparing language processor...</span>';
         progressBar.style.width = '30%';
         
         let tokenizerCached = false;
@@ -1598,9 +1650,9 @@
             if (progress && (progress.status === 'done' || progress.file)) {
               tokenizerCached = progress.cached || false;
               if (tokenizerCached) {
-                loaderSubtext.innerHTML = '✓ Tokenizer loaded from cache<br><span style="color: var(--success); font-size: 0.85rem;">Instant load!</span>';
+                loaderSubtext.innerHTML = '<span style="color: var(--success); font-size: 0.75rem;">Using cached data</span>';
               } else {
-                loaderSubtext.innerHTML = '✓ Tokenizer downloaded<br><span style="color: var(--text-muted); font-size: 0.85rem;">Cached for next time</span>';
+                loaderSubtext.innerHTML = '<span style="color: var(--text-muted); font-size: 0.75rem;">Downloading...</span>';
               }
               console.log(`✓ Tokenizer ${tokenizerCached ? 'cached' : 'downloaded'}`);
             }
@@ -1620,8 +1672,8 @@
             dtype: "q4",  // 4-bit quantization: ~68MB instead of ~270MB
             device: "webgpu"
           };
-          loaderText.textContent = 'LOADING MODEL (GPU + Q4)';
-          loaderSubtext.innerHTML = 'Loading quantized model with GPU acceleration...<br><span style="color: var(--success); font-size: 0.85rem;">~68MB download (4x smaller!)</span>';
+          loaderText.textContent = 'Loading AI Model';
+          loaderSubtext.innerHTML = '<span style="color: var(--text-muted); font-size: 0.75rem;">Downloading model...</span>';
           console.log("✓ Using WebGPU with q4 quantization");
         } else {
           // Fallback to WASM with q8 for better CPU performance
@@ -1629,8 +1681,8 @@
             dtype: "q8",  // 8-bit quantization: ~135MB, better CPU performance
             device: "wasm"
           };
-          loaderText.textContent = 'LOADING MODEL (CPU + Q8)';
-          loaderSubtext.innerHTML = 'Loading quantized model for CPU...<br><span style="color: var(--text-muted); font-size: 0.85rem;">~135MB download</span>';
+          loaderText.textContent = 'Loading AI Model';
+          loaderSubtext.innerHTML = '<span style="color: var(--text-muted); font-size: 0.75rem;">Downloading model...</span>';
           console.log("⚠ WebGPU unavailable, using WASM with q8 quantization");
         }
         
@@ -1648,21 +1700,21 @@
               
               if (progress.cached) {
                 modelCached = true;
-                loaderText.textContent = `LOADING FROM CACHE (${percent}%)`;
-                loaderSubtext.innerHTML = `Loading model from browser cache...<br><span style="color: var(--success); font-size: 0.85rem;">${percent}% complete</span>`;
+                loaderText.textContent = 'Loading AI Model';
+                loaderSubtext.innerHTML = `<span style="color: var(--success); font-size: 0.75rem;">${percent}% (cached)</span>`;
               } else {
-                loaderText.textContent = `DOWNLOADING MODEL (${percent}%)`;
-                loaderSubtext.innerHTML = `Downloading model weights...<br><span style="color: var(--text-muted); font-size: 0.85rem;">${percent}% complete</span>`;
+                loaderText.textContent = 'Loading AI Model';
+                loaderSubtext.innerHTML = `<span style="color: var(--text-muted); font-size: 0.75rem;">${percent}%</span>`;
               }
             } else if (progress.status === 'done' || progress.file) {
               progressBar.style.width = '98%';
               if (progress.cached || modelCached) {
-                loaderText.textContent = 'MODEL READY (CACHED)';
-                loaderSubtext.innerHTML = '✓ Model loaded from cache<br><span style="color: var(--success); font-size: 0.85rem;">Subsequent loads will be instant!</span>';
+                loaderText.textContent = 'AI Model Ready';
+                loaderSubtext.innerHTML = '<span style="color: var(--success); font-size: 0.75rem;">Loaded from cache</span>';
                 console.log("✓ Model loaded from cache");
               } else {
-                loaderText.textContent = 'MODEL READY (DOWNLOADED)';
-                loaderSubtext.innerHTML = '✓ Model downloaded and cached<br><span style="color: var(--success); font-size: 0.85rem;">Ready for next time!</span>';
+                loaderText.textContent = 'AI Model Ready';
+                loaderSubtext.innerHTML = '<span style="color: var(--success); font-size: 0.75rem;">Downloaded & cached</span>';
                 console.log("✓ Model downloaded and cached");
               }
             }
@@ -1672,9 +1724,9 @@
         // Step 4: Complete
         progressBar.style.width = '100%';
         const loadTime = ((performance.now() - loadStartTime) / 1000).toFixed(1);
-        loaderText.textContent = 'SYSTEM READY';
-        loaderSubtext.innerHTML = `✓ Model initialization complete<br><span style="color: var(--success); font-size: 0.85rem;">Loaded in ${loadTime}s • Ready to test functions!</span>`;
-        await new Promise(r => setTimeout(r, 300));
+        loaderText.textContent = 'Ready!';
+        loaderSubtext.innerHTML = `<span style="color: var(--success); font-size: 0.75rem;">Loaded in ${loadTime}s</span>`;
+        await new Promise(r => setTimeout(r, 500));
         
         // Store model info in state
         state.modelInfo = {
@@ -1716,15 +1768,15 @@
         
       } catch(e) {
         console.error("Model load failed:", e);
-        loaderText.textContent = '⚠ LOAD FAILED';
-        loaderSubtext.innerHTML = `Error: ${e.message}<br><span style="color: var(--alert); font-size: 0.85rem;">Please refresh the page</span>`;
+        loaderText.textContent = 'Loading Failed';
+        loaderSubtext.innerHTML = `<span style="color: var(--alert); font-size: 0.75rem;">Please refresh</span>`;
         progressBar.style.background = 'var(--alert)';
         
         // If WebGPU failed, try fallback
         if (e.message && e.message.includes('webgpu') && hasWebGPU) {
           console.log("⚠ WebGPU failed, retrying with WASM fallback...");
-          loaderText.textContent = 'RETRYING WITH CPU';
-          loaderSubtext.innerHTML = 'WebGPU failed, falling back to CPU...<br><span style="color: var(--text-muted); font-size: 0.85rem;">This may be slower</span>';
+          loaderText.textContent = 'Retrying...';
+          loaderSubtext.innerHTML = '<span style="color: var(--text-muted); font-size: 0.75rem;">Using CPU mode</span>';
           progressBar.style.background = 'var(--acid)';
           
           try {
@@ -1734,8 +1786,8 @@
             });
             progressBar.style.width = '100%';
             progressBar.style.background = 'var(--acid)';
-            loaderText.textContent = 'SYSTEM READY (CPU)';
-            loaderSubtext.innerHTML = '✓ Model loaded with CPU fallback<br><span style="color: var(--success); font-size: 0.85rem;">Ready to test functions!</span>';
+            loaderText.textContent = 'Ready!';
+            loaderSubtext.innerHTML = '<span style="color: var(--success); font-size: 0.75rem;">Loaded (CPU mode)</span>';
             console.log("✓ Model loaded with CPU fallback");
             
             // Store model info in state for fallback
