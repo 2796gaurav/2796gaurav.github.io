@@ -1,0 +1,2593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Function Arena // BUILD_YOUR_TOOLS</title>
+  
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500&f[]=space-mono@400,700&display=swap" rel="stylesheet">
+  
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-2Q4M55VKPR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-2Q4M55VKPR', {
+      page_path: window.location.pathname,
+      anonymize_ip: true
+    });
+  </script>
+  
+  <style>
+    :root {
+      --void: #050505;
+      --panel: #111111;
+      --acid: #ccff00;
+      --acid-dim: #4d6000;
+      --hyper-purple: #7000ff;
+      --alert: #ff3300;
+      --success: #00ff88;
+      --text-main: #f0f0f0;
+      --text-muted: #666;
+      --border-thick: 3px;
+      --hard-shadow: 6px 6px 0px var(--hyper-purple);
+      --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background-color: var(--void);
+      color: var(--text-main);
+      font-family: 'Space Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .noise-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.05;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    .scanlines {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+      background-size: 100% 4px;
+      z-index: 9998;
+      pointer-events: none;
+    }
+
+    h1, h2, h3, .display-font {
+      font-family: 'Clash Display', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+    }
+
+    #boot-sequence {
+      position: fixed;
+      inset: 0;
+      background: var(--void);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 40px;
+      font-size: 14px;
+    }
+
+    .boot-line {
+      opacity: 0;
+      transform: translateY(10px);
+      color: var(--acid);
+      margin-bottom: 5px;
+    }
+
+    .app-container {
+      max-width: 1800px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 20px;
+      flex: 1;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    @media (max-width: 1200px) {
+      .app-container { grid-template-columns: 1fr; }
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: var(--border-thick) solid var(--text-main);
+      padding: 20px;
+      position: relative;
+    }
+
+    .panel-title {
+      background: var(--text-main);
+      color: var(--void);
+      padding: 5px 10px;
+      font-weight: 700;
+      display: inline-block;
+      margin-bottom: 15px;
+      font-size: 12px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 5px;
+    }
+
+    .stat-value {
+      font-family: 'Clash Display';
+      font-size: 24px;
+      color: var(--acid);
+    }
+
+    .game-area {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .level-header {
+      border: var(--border-thick) solid var(--acid);
+      background: var(--void);
+      padding: 30px;
+      position: relative;
+      box-shadow: var(--hard-shadow);
+    }
+
+    .level-title {
+      font-size: 2.5rem;
+      line-height: 0.9;
+      margin-bottom: 10px;
+    }
+
+    .objective-badge {
+      display: inline-block;
+      background: var(--hyper-purple);
+      color: var(--acid);
+      font-weight: 900;
+      padding: 8px 16px;
+      font-size: 1rem;
+      margin-bottom: 15px;
+    }
+
+    .scenario-grid {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .scenario-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid #333;
+      padding: 15px;
+      display: grid;
+      grid-template-columns: 40px 1fr 100px;
+      align-items: center;
+      gap: 15px;
+      transition: all 0.2s;
+    }
+
+    .scenario-card:hover {
+      border-color: var(--acid);
+      background: rgba(204, 255, 0, 0.03);
+    }
+
+    .scenario-icon {
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .scenario-text {
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .scenario-expected {
+      text-align: center;
+      font-weight: bold;
+      font-size: 0.8rem;
+    }
+
+    .scenario-expected.should-trigger {
+      color: var(--success);
+    }
+
+    .scenario-expected.should-not {
+      color: var(--alert);
+    }
+
+    .scenario-result {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+    }
+
+    .editor-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .editor-section { grid-template-columns: 1fr; }
+    }
+
+    .editor-panel {
+      border: 2px solid #333;
+      background: #000;
+    }
+
+    .editor-header {
+      background: #1a1a1a;
+      padding: 10px 15px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .editor-title {
+      color: var(--acid);
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+
+    textarea, .json-output {
+      width: 100%;
+      background: #000;
+      border: none;
+      color: var(--text-main);
+      padding: 20px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.9rem;
+      min-height: 300px;
+      resize: vertical;
+      overflow-y: auto;
+    }
+    
+    textarea {
+      height: auto;
+    }
+
+    textarea:focus {
+      outline: none;
+    }
+
+    .json-output {
+      color: var(--success);
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .action-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      background: var(--text-main);
+      color: var(--void);
+      border: none;
+      font-family: 'Clash Display', sans-serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 1rem;
+      padding: 15px 30px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex: 1;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--acid);
+      transform: translate(-4px, -4px);
+      box-shadow: 6px 6px 0px var(--text-main);
+    }
+
+    button:active:not(:disabled) {
+      transform: translate(0, 0);
+      box-shadow: none;
+    }
+
+    button:disabled {
+      background: #333;
+      color: #666;
+      cursor: not-allowed;
+    }
+
+    button.secondary {
+      background: transparent;
+      border: 2px solid var(--text-main);
+      color: var(--text-main);
+    }
+
+    button.secondary:hover:not(:disabled) {
+      background: var(--text-main);
+      color: var(--void);
+    }
+
+    .hint-panel {
+      background: rgba(112, 0, 255, 0.1);
+      border: 1px solid var(--hyper-purple);
+      padding: 15px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .hint-panel.visible {
+      display: block;
+    }
+
+    .hint-title {
+      color: var(--hyper-purple);
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+
+    .hint-content {
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    .competitor-functions {
+      display: grid;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .competitor-fn {
+      background: rgba(255,0,0,0.05);
+      border: 1px solid #4a0000;
+      padding: 12px;
+      font-size: 0.85rem;
+    }
+
+    .fn-name-display {
+      color: var(--alert);
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .result-panel {
+      margin-top: 20px;
+      padding: 20px;
+      background: #080808;
+      border: 2px solid #333;
+      display: none;
+    }
+
+    .result-panel.visible {
+      display: block;
+      animation: flash 0.2s;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #333;
+    }
+
+    .result-title {
+      font-size: 1.5rem;
+      font-family: 'Clash Display';
+    }
+
+    .result-score {
+      font-size: 2rem;
+      font-family: 'Clash Display';
+    }
+
+    .result-title.success, .result-score.success {
+      color: var(--success);
+    }
+
+    .result-title.fail, .result-score.fail {
+      color: var(--alert);
+    }
+
+    .result-breakdown {
+      display: grid;
+      gap: 8px;
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px;
+      background: rgba(255,255,255,0.02);
+      border-left: 3px solid #333;
+    }
+
+    .result-item.correct {
+      border-left-color: var(--success);
+    }
+
+    .result-item.wrong {
+      border-left-color: var(--alert);
+    }
+
+    .execution-logs {
+      border: 2px solid #333;
+      background: #000;
+      margin-top: 20px;
+    }
+
+    .logs-header {
+      background: #1a1a1a;
+      padding: 12px 15px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logs-title {
+      color: var(--acid);
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+
+    .logs-clear {
+      background: transparent;
+      border: 1px solid #333;
+      color: #666;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .logs-clear:hover {
+      border-color: #666;
+      color: #999;
+    }
+
+    .logs-content {
+      padding: 15px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      max-height: 400px;
+      overflow-y: auto;
+      background: #0a0a0a;
+    }
+
+    .log-entry {
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #222;
+      opacity: 0;
+      animation: fadeIn 0.3s forwards;
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-time {
+      color: #666;
+      font-size: 0.75rem;
+    }
+
+    .log-label {
+      color: var(--acid);
+      font-weight: bold;
+      display: inline-block;
+      min-width: 120px;
+    }
+
+    .log-prompt {
+      color: #90ee90;
+      padding: 8px;
+      background: rgba(144, 238, 144, 0.1);
+      border-left: 3px solid #90ee90;
+      margin: 8px 0;
+      word-break: break-word;
+    }
+
+    .log-tools {
+      color: #87ceeb;
+      padding: 8px;
+      background: rgba(135, 206, 235, 0.1);
+      border-left: 3px solid #87ceeb;
+      margin: 8px 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .log-function {
+      padding: 4px 8px;
+      margin: 4px 0;
+      background: #1a1a1a;
+      border-radius: 3px;
+    }
+
+    .log-function-name {
+      color: var(--acid);
+      font-weight: bold;
+    }
+
+    .log-success {
+      color: #00ff88;
+    }
+
+    .log-error {
+      color: #ff3300;
+    }
+
+    .log-info {
+      color: #999;
+    }
+
+    @keyframes flash {
+      0% { background-color: var(--text-main); }
+      100% { background-color: #080808; }
+    }
+
+    .rules-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      z-index: 5000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .rules-modal.visible {
+      display: flex;
+    }
+
+    .rules-content {
+      background: var(--panel);
+      border: var(--border-thick) solid var(--acid);
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 30px;
+    }
+
+    .rules-section {
+      margin-bottom: 25px;
+    }
+
+    .rules-section h3 {
+      color: var(--acid);
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+    }
+
+    .rules-section p, .rules-section ul {
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .rules-section ul {
+      margin-left: 20px;
+    }
+
+    .rules-section code {
+      background: #000;
+      padding: 2px 6px;
+      border: 1px solid #333;
+      color: var(--acid);
+      font-size: 0.85rem;
+    }
+
+    .close-rules {
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .loader-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 5, 5, 0.95);
+      z-index: 10001;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+    }
+
+    .loader-overlay.hidden {
+      display: none;
+    }
+
+    .loader-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid var(--panel);
+      border-top: 4px solid var(--acid);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOutRight {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .scenario-card.correct {
+      border-color: var(--success);
+      background: rgba(0, 255, 136, 0.1);
+      animation: pulse 0.3s;
+    }
+
+    .scenario-card.wrong {
+      border-color: var(--alert);
+      background: rgba(255, 51, 0, 0.1);
+      animation: pulse 0.3s;
+    }
+
+    .loader-text {
+      color: var(--acid);
+      font-family: 'Clash Display', sans-serif;
+      font-size: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+
+    .loader-progress {
+      width: 300px;
+      height: 4px;
+      background: var(--panel);
+      border: 1px solid var(--text-main);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .loader-progress-bar {
+      height: 100%;
+      background: var(--acid);
+      width: 0%;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 10px var(--acid);
+    }
+
+    .test-loader {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--panel);
+      border: var(--border-thick) solid var(--acid);
+      padding: 20px 30px;
+      z-index: 5000;
+      display: none;
+      align-items: center;
+      gap: 15px;
+      box-shadow: var(--hard-shadow);
+    }
+
+    .test-loader.visible {
+      display: flex;
+      animation: slideInUp 0.3s var(--ease-out-expo);
+    }
+
+    @keyframes slideInUp {
+      from {
+        transform: translateY(100px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .test-loader-spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid var(--panel);
+      border-top: 3px solid var(--acid);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .test-loader-text {
+      color: var(--acid);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.9rem;
+    }
+
+    .test-loader-progress {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .model-info {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background: var(--panel);
+      border: 1px solid var(--text-main);
+      padding: 8px 12px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      z-index: 100;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .model-info:hover {
+      opacity: 1;
+    }
+
+    .model-info strong {
+      color: var(--acid);
+    }
+
+    .model-info .divider {
+      color: #333;
+      margin: 0 5px;
+    }
+
+    .model-info .creator-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .model-info .creator-info a {
+      color: var(--acid);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .model-info .creator-info a:hover {
+      color: var(--success);
+    }
+
+    .model-info .creator-name {
+      color: var(--text-main);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="noise-overlay"></div>
+  <div class="scanlines"></div>
+
+  <div id="boot-sequence"></div>
+
+    <div class="loader-overlay" id="modelLoader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text" id="loaderText">LOADING MODEL</div>
+    <div class="loader-progress">
+      <div class="loader-progress-bar" id="modelProgressBar"></div>
+    </div>
+    <div id="loaderSubtext" style="color: var(--text-muted); font-size: 0.9rem; text-align: center; max-width: 400px;">
+      Initializing model loader...<br>
+      <span id="deviceInfo" style="color: var(--acid); font-size: 0.85rem;"></span>
+    </div>
+  </div>
+
+  <div class="test-loader" id="testLoader">
+    <div class="test-loader-spinner"></div>
+    <div>
+      <div class="test-loader-text">TESTING FUNCTION</div>
+      <div class="test-loader-progress" id="testProgress">Initializing...</div>
+    </div>
+  </div>
+
+  <div class="rules-modal" id="rulesModal">
+    <div class="rules-content">
+      <h2 style="color: var(--acid); margin-bottom: 20px; font-size: 2rem;">FUNCTION ARENA // RULES</h2>
+      
+      <div class="rules-section">
+        <h3>🎯 OBJECTIVE</h3>
+        <p>Create precise function definitions that trigger in the RIGHT scenarios and stay silent in the WRONG ones. You're competing against other functions for attention.</p>
+      </div>
+
+      <div class="rules-section">
+        <h3>📝 HOW TO PLAY</h3>
+        <p>1. Review the test scenarios - some should trigger your function (✓ SHOULD), others shouldn't (✗ SHOULD NOT)</p>
+        <p>2. Write your function definition with a clear name and description</p>
+        <p>3. Add parameters with proper types and descriptions (optional but helps)</p>
+        <p>4. Use enums to constrain values when appropriate</p>
+        <p>5. Test your function against all scenarios</p>
+      </div>
+
+      <div class="rules-section">
+        <h3>🔧 FUNCTION SCHEMA FORMAT</h3>
+        <p>Your function follows the JSON Schema / OpenAPI format:</p>
+        <ul>
+          <li><code>name</code>: Function identifier (e.g., "get_weather")</li>
+          <li><code>description</code>: What your function does - BE SPECIFIC</li>
+          <li><code>parameters</code>: Object with type definitions</li>
+          <li><code>properties</code>: Define each parameter with type, description</li>
+          <li><code>required</code>: Array of required parameter names</li>
+          <li><code>enum</code>: Use to limit values (e.g., ["celsius", "fahrenheit"])</li>
+        </ul>
+      </div>
+
+      <div class="rules-section">
+        <h3>💡 PRO TIPS</h3>
+        <p><strong>Names matter:</strong> Specific names beat generic ones. "fetch_user_profile" > "get_data"</p>
+        <p><strong>Descriptions are key:</strong> AI reads your description to decide. Be clear about WHAT and WHEN.</p>
+        <p><strong>Use enums wisely:</strong> They constrain inputs and make intent clearer.</p>
+        <p><strong>Think like AI:</strong> What keywords would make YOUR function the obvious choice?</p>
+      </div>
+
+      <div class="rules-section">
+        <h3>📊 SCORING</h3>
+        <p>+100 points for each correct trigger (when you SHOULD)</p>
+        <p>-50 points for each incorrect trigger (when you SHOULDN'T)</p>
+        <p>+50 bonus points for each FALSE scenario where you correctly didn't trigger</p>
+        <p>Compete against 0-5 competitor functions trying to steal your scenarios!</p>
+      </div>
+
+      <div class="rules-section">
+        <h3>🎓 LEARNING PATH</h3>
+        <p>Levels progress from basic scenarios to complex edge cases:</p>
+        <p>• <strong>Novice:</strong> Simple, clear scenarios</p>
+        <p>• <strong>Intermediate:</strong> Ambiguous queries, need precision</p>
+        <p>• <strong>Advanced:</strong> Multiple competitors, overlapping domains</p>
+        <p>• <strong>Expert:</strong> Complex parameters, enums required</p>
+        <p>• <strong>Master:</strong> Multi-domain confusion, extreme precision needed</p>
+      </div>
+
+      <button class="close-rules" onclick="toggleRules()">CLOSE // BEGIN TRAINING</button>
+    </div>
+  </div>
+
+  <div class="app-container" id="app">
+    
+    <aside class="sidebar">
+      <div class="panel">
+        <div class="panel-title">OPERATOR_STATS</div>
+        <div class="stat-row">
+          <span>LEVEL</span>
+          <span class="stat-value" id="levelDisp">01</span>
+        </div>
+        <div class="stat-row">
+          <span>SCENARIOS</span>
+          <span class="stat-value" id="scenarioCount">0</span>
+        </div>
+        <div class="stat-row">
+          <span>SCORE</span>
+          <span class="stat-value" id="scoreDisp">0000</span>
+        </div>
+        <div class="stat-row">
+          <span>ACCURACY</span>
+          <span class="stat-value" id="accuracyDisp" style="color: var(--success)">--</span>
+        </div>
+        <div class="stat-row" id="streakRow" style="display: none;">
+          <span>STREAK</span>
+          <span class="stat-value" id="streakDisp" style="color: var(--hyper-purple)">0</span>
+        </div>
+      </div>
+
+
+      <div class="panel">
+        <div class="panel-title">COMPETITOR_FUNCTIONS</div>
+        <div id="competitorList" style="font-size: 0.8rem; color: #666;">
+          None loaded...
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">ACHIEVEMENTS</div>
+        <div id="achievementsList" style="font-size: 0.8rem; color: #666; min-height: 40px;">
+          No achievements yet...
+        </div>
+      </div>
+
+      <button onclick="toggleRules()" style="border: 1px solid var(--text-main); background: transparent;">
+        VIEW RULES [?]
+      </button>
+
+      <button onclick="toggleHints()" style="border: 1px solid var(--hyper-purple); background: transparent; color: var(--hyper-purple);">
+        SHOW HINTS [💡]
+      </button>
+
+      <button onclick="resetProgress()" style="border: 1px solid var(--alert); background: transparent; color: var(--alert); margin-top: 10px; font-size: 0.85rem;">
+        RESET PROGRESS [⚠️]
+      </button>
+    </aside>
+
+    <main class="game-area">
+      <header class="level-header">
+        <div class="objective-badge" id="objectiveBadge">BUILD YOUR FUNCTION</div>
+        <h1 class="level-title" id="lvlName">INITIALIZING...</h1>
+        <p style="max-width: 800px; color: var(--text-muted); margin-top: 10px;" id="lvlDesc">Loading challenge parameters...</p>
+      </header>
+
+      <div class="panel" style="border-color: var(--acid);">
+        <div class="panel-title" style="background: var(--acid); color: black;">TEST_SCENARIOS</div>
+        <div class="scenario-grid" id="scenarioGrid"></div>
+      </div>
+
+      <div class="editor-section">
+        <div class="editor-panel">
+          <div class="editor-header">
+            <span class="editor-title">YOUR FUNCTION DEFINITION</span>
+            <span style="color: #666; font-size: 0.8rem;">✓ Pre-filled template • Edit to refine</span>
+          </div>
+          <textarea id="functionEditor" placeholder='{\n  "name": "my_function",\n  "description": "What my function does...",\n  "parameters": {\n    "type": "object",\n    "properties": {\n      "param1": {\n        "type": "string",\n        "description": "First parameter"\n      }\n    },\n    "required": ["param1"]\n  }\n}'></textarea>
+        </div>
+
+        <div class="editor-panel">
+          <div class="editor-header">
+            <span class="editor-title">PARSED OUTPUT</span>
+            <span style="color: #666; font-size: 0.8rem;">Validation</span>
+          </div>
+          <div class="json-output" id="jsonOutput">// Your JSON will be validated here...</div>
+        </div>
+      </div>
+
+      <div class="hint-panel" id="hintPanel">
+        <div class="hint-title">💡 STRATEGIC HINTS</div>
+        <div class="hint-content" id="hintContent"></div>
+      </div>
+
+      <div class="action-bar">
+        <button id="testBtn" onclick="testFunction()">TEST FUNCTION</button>
+        <button class="secondary" onclick="resetEditor()">RESET</button>
+        <button class="secondary" onclick="loadTemplate()">📋 STANDARD TEMPLATE</button>
+        <button class="secondary" id="nextBtn" onclick="nextLevel()" style="display: none;">NEXT LEVEL →</button>
+      </div>
+
+      <div class="result-panel" id="resultPanel">
+        <div class="result-header">
+          <span class="result-title" id="resultTitle">RESULTS</span>
+          <span class="result-score" id="resultScore">+0</span>
+        </div>
+        <div class="result-breakdown" id="resultBreakdown"></div>
+      </div>
+
+      <div class="execution-logs">
+        <div class="logs-header">
+          <span class="logs-title">⚙️ EXECUTION LOGS // Real-time Model Behavior</span>
+          <button class="logs-clear" onclick="clearLogs()">CLEAR LOGS</button>
+        </div>
+        <div class="logs-content" id="logsContent">
+          <div style="color: #666; text-align: center; padding: 40px 20px;">
+            Logs will appear here when you test a function...
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="model-info" id="modelInfo" style="display: none;">
+    <div>
+      <strong>Model:</strong> <span id="modelName">-</span> | 
+      <strong>Version:</strong> <span id="modelVersion">-</span> | 
+      <strong>Quantization:</strong> <span id="modelQuantization">-</span> | 
+      <strong>Device:</strong> <span id="modelDevice">-</span> |
+
+      <strong>Made by Gaurav Chauhan</strong> |
+      <strong>2796gaurav@gmail.com</strong> |
+      <strong><a href="https://www.linkedin.com/in/gauravc2708/" target="_blank" rel="noopener noreferrer">LinkedIn</a></strong> |
+    
+    </div>
+    
+  </div>
+
+  <script type="module">
+    // Import idb for IndexedDB
+    import { openDB } from 'https://cdn.jsdelivr.net/npm/idb@7/+esm';
+    
+    // 1. Add IndexedDB for explicit cache control
+    const dbPromise = openDB('function-arena-cache', 1, {
+      upgrade(db) {
+        db.createObjectStore('models');
+        db.createObjectStore('tokenizers');
+        db.createObjectStore('level-data');
+      },
+    });
+
+    // 3. Add telemetry for optimization insights
+    const telemetry = {
+      modelLoadTime: 0,
+      averageGenerationTime: 0,
+      cacheHitRate: 0,
+      deviceType: null,
+      generationTimes: [],
+      cacheHits: 0,
+      cacheMisses: 0,
+      init() {
+        // Detect device type
+        const hasWebGPU = !!navigator.gpu;
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        this.deviceType = hasWebGPU ? 'webgpu' : (isMobile ? 'mobile-cpu' : 'desktop-cpu');
+        
+        // Track page load
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'page_load', {
+            device_type: this.deviceType,
+            timestamp: new Date().toISOString()
+          });
+        }
+      },
+      trackModelLoad(time) {
+        this.modelLoadTime = time;
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'model_load', {
+            load_time: time,
+            device_type: this.deviceType
+          });
+        }
+      },
+      trackGeneration(time) {
+        this.generationTimes.push(time);
+        // Keep only last 100 generations
+        if (this.generationTimes.length > 100) {
+          this.generationTimes.shift();
+        }
+        this.averageGenerationTime = this.generationTimes.reduce((a, b) => a + b, 0) / this.generationTimes.length;
+        
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'function_generation', {
+            generation_time: time,
+            average_time: this.averageGenerationTime
+          });
+        }
+      },
+      trackCacheHit(hit) {
+        if (hit) {
+          this.cacheHits++;
+        } else {
+          this.cacheMisses++;
+        }
+        const total = this.cacheHits + this.cacheMisses;
+        this.cacheHitRate = total > 0 ? (this.cacheHits / total) * 100 : 0;
+        
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'cache_access', {
+            cache_hit: hit,
+            hit_rate: this.cacheHitRate
+          });
+        }
+      },
+      trackLevelComplete(levelId, score, passed) {
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'level_complete', {
+            level_id: levelId,
+            score: score,
+            passed: passed,
+            average_generation_time: this.averageGenerationTime,
+            cache_hit_rate: this.cacheHitRate
+          });
+        }
+      },
+      getMetrics() {
+        return {
+          modelLoadTime: this.modelLoadTime,
+          averageGenerationTime: this.averageGenerationTime,
+          cacheHitRate: this.cacheHitRate,
+          deviceType: this.deviceType,
+          totalGenerations: this.generationTimes.length
+        };
+      }
+    };
+
+    // Initialize telemetry
+    telemetry.init();
+
+    // 2. Add cache warmup on idle
+    function setupCacheWarmup() {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          // Preload next level's competitor functions
+          const nextLevel = levels[state.levelIdx + 1];
+          if (nextLevel) {
+            // Prepare next level data in IndexedDB
+            dbPromise.then(db => {
+              return db.put('level-data', nextLevel, `level-${nextLevel.id}`);
+            }).then(() => {
+              console.log('✓ Next level data cached');
+              telemetry.trackCacheHit(true);
+            }).catch(err => {
+              console.log('Cache warmup failed:', err);
+            });
+          }
+        }, { timeout: 5000 });
+      } else {
+        // Fallback for browsers without requestIdleCallback
+        setTimeout(() => {
+          const nextLevel = levels[state.levelIdx + 1];
+          if (nextLevel) {
+            dbPromise.then(db => {
+              return db.put('level-data', nextLevel, `level-${nextLevel.id}`);
+            }).catch(err => console.log('Cache warmup failed:', err));
+          }
+        }, 2000);
+      }
+    }
+
+    // GAME LEVELS
+    const levels = [
+      {
+        id: 1,
+        title: "BASIC_TRIGGER",
+        description: "Simple weather function. Make it trigger for weather queries only.",
+        difficulty: "NOVICE",
+        scenarios: [
+          { query: "What's the weather in Tokyo?", shouldTrigger: true, icon: "☀️" },
+          { query: "Get weather for London", shouldTrigger: true, icon: "🌧️" },
+          { query: "Tell me about Paris history", shouldTrigger: false, icon: "📚" },
+          { query: "What time is it?", shouldTrigger: false, icon: "🕐" },
+        ],
+        competitors: [],
+        hints: [
+          "Focus on weather-related keywords in your description",
+          "Use a clear name like 'get_weather' or 'fetch_weather'",
+          "Add a location parameter to make it more specific"
+        ],
+        starterCode: {
+          name: "get_weather",
+          description: "Get current weather information for a specified location",
+          parameters: {
+            type: "object",
+            properties: {
+              location: {
+                type: "string",
+                description: "The city or location name"
+              }
+            },
+            required: ["location"]
+          }
+        }
+      },
+      {
+        id: 2,
+        title: "PRECISION_TARGETING",
+        description: "Build a user profile function. Avoid triggering on similar but different queries.",
+        difficulty: "INTERMEDIATE",
+        scenarios: [
+          { query: "Get user profile for john_doe", shouldTrigger: true, icon: "👤" },
+          { query: "Fetch user info for ID 12345", shouldTrigger: true, icon: "🔍" },
+          { query: "Show user analytics", shouldTrigger: false, icon: "📊" },
+          { query: "Delete user account", shouldTrigger: false, icon: "🗑️" },
+          { query: "Update user settings", shouldTrigger: false, icon: "⚙️" },
+          { query: "Get profile data", shouldTrigger: true, icon: "💾" },
+        ],
+        competitors: [
+          {
+            name: "get_user_analytics",
+            description: "Retrieve user behavior analytics and statistics"
+          },
+          {
+            name: "update_user",
+            description: "Update user information and settings"
+          }
+        ],
+        hints: [
+          "Emphasize 'retrieve' or 'get' operations, not modify/delete",
+          "Specify that it's for profile/information retrieval",
+          "Distinguish from analytics (which is aggregate data)",
+          "Use parameters to show what data you return"
+        ],
+        starterCode: {
+          name: "get_user_profile",
+          description: "Retrieve user profile information including name, email, and account details",
+          parameters: {
+            type: "object",
+            properties: {
+              user_id: {
+                type: "string",
+                description: "The unique identifier or username of the user"
+              }
+            },
+            required: ["user_id"]
+          }
+        }
+      },
+      {
+        id: 3,
+        title: "ENUM_MASTERY",
+        description: "Create a task management function. Use enums to constrain priority and status.",
+        difficulty: "ADVANCED",
+        scenarios: [
+          { query: "Create high priority task", shouldTrigger: true, icon: "📝" },
+          { query: "Add new task", shouldTrigger: true, icon: "➕" },
+          { query: "List completed tasks", shouldTrigger: false, icon: "📋" },
+          { query: "Mark task as done", shouldTrigger: false, icon: "✅" },
+          { query: "Create task with low priority", shouldTrigger: true, icon: "🐛" },
+          { query: "Delete tasks", shouldTrigger: false, icon: "🗑️" },
+          { query: "Update task deadline", shouldTrigger: false, icon: "📅" },
+        ],
+        competitors: [
+          {
+            name: "list_tasks",
+            description: "Retrieve and list existing tasks with filters"
+          },
+          {
+            name: "update_task_status",
+            description: "Change the status of an existing task"
+          },
+          {
+            name: "delete_task",
+            description: "Remove a task from the system"
+          }
+        ],
+        hints: [
+          "Focus on CREATE/ADD operations only",
+          "Use enum for priority: ['low', 'medium', 'high']",
+          "Use enum for initial status: ['pending', 'in_progress']",
+          "Make your description explicitly mention 'create' or 'add'",
+          "Distinguish from update, delete, and list operations"
+        ],
+        starterCode: {
+          name: "create_task",
+          description: "Create a new task with title, description, priority level, and initial status",
+          parameters: {
+            type: "object",
+            properties: {
+              title: {
+                type: "string",
+                description: "The task title or name"
+              },
+              priority: {
+                type: "string",
+                enum: ["low", "medium", "high"],
+                description: "Priority level of the task"
+              },
+              status: {
+                type: "string",
+                enum: ["pending", "in_progress"],
+                description: "Initial status of the task"
+              }
+            },
+            required: ["title", "priority"]
+          }
+        }
+      },
+      {
+        id: 4,
+        title: "MULTI_DOMAIN_CHAOS",
+        description: "Calendar event creation vs. reminders vs. notifications. Extreme precision required.",
+        difficulty: "EXPERT",
+        scenarios: [
+          { query: "Schedule meeting for tomorrow", shouldTrigger: true, icon: "📅" },
+          { query: "Create calendar event", shouldTrigger: true, icon: "👥" },
+          { query: "Set reminder to call mom", shouldTrigger: false, icon: "🔔" },
+          { query: "Send notification", shouldTrigger: false, icon: "📬" },
+          { query: "Add event to calendar", shouldTrigger: true, icon: "🎂" },
+          { query: "Remind me about meeting", shouldTrigger: false, icon: "⏰" },
+          { query: "List calendar events", shouldTrigger: false, icon: "📋" },
+          { query: "Block time on calendar", shouldTrigger: true, icon: "🎯" },
+        ],
+        competitors: [
+          {
+            name: "create_reminder",
+            description: "Set a reminder notification for a specific time or event"
+          },
+          {
+            name: "send_notification",
+            description: "Send an immediate or scheduled notification to the user"
+          },
+          {
+            name: "list_events",
+            description: "Retrieve calendar events within a date range"
+          },
+          {
+            name: "update_event",
+            description: "Modify an existing calendar event"
+          }
+        ],
+        hints: [
+          "Calendar events are time-blocked entries with start/end times",
+          "Reminders are notifications, not calendar entries",
+          "Use parameters: title, start_time, end_time, location",
+          "Emphasize 'calendar', 'schedule', 'meeting', 'event' in description",
+          "Explicitly exclude reminders and notifications in your description"
+        ],
+        starterCode: {
+          name: "create_calendar_event",
+          description: "Create a calendar event with time-blocked scheduling for meetings and appointments",
+          parameters: {
+            type: "object",
+            properties: {
+              title: {
+                type: "string",
+                description: "Event title or meeting name"
+              },
+              start_time: {
+                type: "string",
+                description: "Event start time (ISO 8601 format)"
+              },
+              end_time: {
+                type: "string",
+                description: "Event end time (ISO 8601 format)"
+              },
+              location: {
+                type: "string",
+                description: "Physical or virtual meeting location"
+              }
+            },
+            required: ["title", "start_time", "end_time"]
+          }
+        }
+      },
+      {
+        id: 5,
+        title: "ULTIMATE_PRECISION",
+        description: "Payment processing with strict parameters. Security-critical function calling.",
+        difficulty: "MASTER",
+        scenarios: [
+          { query: "Process payment $99.99", shouldTrigger: true, icon: "💳" },
+          { query: "Charge customer $250", shouldTrigger: true, icon: "💰" },
+          { query: "Show payment history", shouldTrigger: false, icon: "📊" },
+          { query: "Refund transaction", shouldTrigger: false, icon: "↩️" },
+          { query: "Process payment $1500", shouldTrigger: true, icon: "🏦" },
+          { query: "Verify payment status", shouldTrigger: false, icon: "🔍" },
+          { query: "Cancel payment", shouldTrigger: false, icon: "❌" },
+          { query: "Charge $45.50", shouldTrigger: true, icon: "💵" },
+          { query: "Update payment method", shouldTrigger: false, icon: "✏️" },
+        ],
+        competitors: [
+          {
+            name: "refund_payment",
+            description: "Issue a refund for a completed transaction"
+          },
+          {
+            name: "verify_payment",
+            description: "Check the status and validity of a payment transaction"
+          },
+          {
+            name: "get_payment_history",
+            description: "Retrieve past payment transactions and history"
+          },
+          {
+            name: "cancel_payment",
+            description: "Cancel a pending or scheduled payment"
+          },
+          {
+            name: "update_payment_method",
+            description: "Modify or change stored payment method information"
+          }
+        ],
+        hints: [
+          "This is about PROCESSING/CHARGING, not viewing or refunding",
+          "Require amount parameter with number type",
+          "Use enum for payment_method: ['credit_card', 'debit_card', 'bank_transfer', 'saved_method']",
+          "Add currency parameter with enum: ['USD', 'EUR', 'GBP']",
+          "Make description security-conscious and specific to charging",
+          "Distinguish clearly from refund, verify, and cancel operations"
+        ],
+        starterCode: {
+          name: "process_payment",
+          description: "Process a payment transaction with secure handling of payment method and currency",
+          parameters: {
+            type: "object",
+            properties: {
+              amount: {
+                type: "number",
+                description: "Payment amount in the specified currency"
+              },
+              currency: {
+                type: "string",
+                enum: ["USD", "EUR", "GBP"],
+                description: "Currency code for the transaction"
+              },
+              payment_method: {
+                type: "string",
+                enum: ["credit_card", "debit_card", "bank_transfer", "saved_method"],
+                description: "The payment method to use"
+              },
+              customer_id: {
+                type: "string",
+                description: "Customer identifier for the transaction"
+              }
+            },
+            required: ["amount", "currency", "payment_method", "customer_id"]
+          }
+        }
+      }
+    ];
+
+    let state = {
+      levelIdx: 0,
+      totalScore: 0,
+      model: null,
+      tokenizer: null,
+      booted: false,
+      currentFunction: null,
+      achievements: [],
+      streak: 0,
+      bestStreak: 0,
+      levelAttempts: {},
+      hintsUsed: 0,
+      modelInfo: {
+        name: null,
+        version: null,
+        quantization: null,
+        device: null
+      }
+    };
+
+    // Load state from localStorage
+    function loadState() {
+      try {
+        const saved = localStorage.getItem('functionArenaState');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          state.totalScore = parsed.totalScore || 0;
+          state.achievements = parsed.achievements || [];
+          state.bestStreak = parsed.bestStreak || 0;
+          state.levelAttempts = parsed.levelAttempts || {};
+          state.hintsUsed = parsed.hintsUsed || 0;
+        }
+      } catch(e) {
+        console.log('No saved state found');
+      }
+    }
+
+    // Save state to localStorage
+    function saveState() {
+      try {
+        localStorage.setItem('functionArenaState', JSON.stringify({
+          totalScore: state.totalScore,
+          achievements: state.achievements,
+          bestStreak: state.bestStreak,
+          levelAttempts: state.levelAttempts,
+          hintsUsed: state.hintsUsed
+        }));
+      } catch(e) {
+        console.error('Failed to save state:', e);
+      }
+    }
+
+    // Initialize state on load
+    loadState();
+
+    // Boot Sequence
+    async function bootSequence() {
+      const bootLines = [
+        "INITIALIZING FUNCTION ARENA v2.0...",
+        "OPTIMIZING MODEL LOAD [Q4 QUANTIZATION + GPU]...",
+        "LOADING NEURAL WEIGHTS [onnx-community/functiongemma-270m]...",
+        "MOUNTING EDUCATION MODULE...",
+        "ESTABLISHING SEMANTIC PARSER...",
+        "INDEXING FUNCTION SCHEMA LIBRARY...",
+        "TRAINING ENVIRONMENT READY.",
+        "SYSTEM ONLINE."
+      ];
+      
+      const container = document.getElementById('boot-sequence');
+      
+      for(let i=0; i<bootLines.length; i++) {
+        const line = document.createElement('div');
+        line.className = 'boot-line';
+        line.textContent = `> ${bootLines[i]}`;
+        container.appendChild(line);
+        
+        line.offsetHeight;
+        line.style.opacity = 1;
+        line.style.transform = "translateY(0)";
+        
+        await new Promise(r => setTimeout(r, 400));
+      }
+
+      await loadModel();
+
+      container.style.transition = "opacity 0.5s";
+      container.style.opacity = 0;
+      setTimeout(() => {
+        container.style.display = 'none';
+        document.getElementById('app').style.opacity = 1;
+        state.booted = true;
+        renderLevel();
+        toggleRules(); // Show rules on first load
+      }, 500);
+    }
+
+    async function loadModel() {
+      const loadStartTime = performance.now();
+      const loader = document.getElementById('modelLoader');
+      const progressBar = document.getElementById('modelProgressBar');
+      const loaderText = document.getElementById('loaderText');
+      const loaderSubtext = document.getElementById('loaderSubtext');
+      const deviceInfo = document.getElementById('deviceInfo');
+      
+      loader.classList.remove('hidden');
+      
+      // Detect device capabilities
+      const hasWebGPU = !!navigator.gpu;
+      const modelId = "onnx-community/functiongemma-270m-it-ONNX";
+      
+      // Update device info
+      if (hasWebGPU) {
+        deviceInfo.textContent = '✓ WebGPU detected - GPU acceleration enabled';
+        deviceInfo.style.color = 'var(--success)';
+      } else {
+        deviceInfo.textContent = '⚠ WebGPU unavailable - using CPU (WASM)';
+        deviceInfo.style.color = 'var(--text-muted)';
+      }
+      
+      try {
+        // Step 1: Import library
+        loaderText.textContent = 'IMPORTING TRANSFORMERS.JS';
+        loaderSubtext.innerHTML = 'Loading library from CDN...<br><span style="color: var(--text-muted); font-size: 0.85rem;">~2MB download</span>';
+        progressBar.style.width = '15%';
+        
+        const { env, AutoTokenizer, AutoModelForCausalLM } = await import(
+          "https://cdn.jsdelivr.net/npm/@huggingface/transformers@latest"
+        );
+        
+        env.allowRemoteModels = true;
+        env.allowLocalModels = false;
+        env.useBrowserCache = true; // Enable browser cache explicitly
+
+        // Step 2: Load tokenizer
+        loaderText.textContent = 'LOADING TOKENIZER';
+        loaderSubtext.innerHTML = 'Loading tokenizer configuration...<br><span style="color: var(--text-muted); font-size: 0.85rem;">Checking cache...</span>';
+        progressBar.style.width = '30%';
+        
+        let tokenizerCached = false;
+        state.tokenizer = await AutoTokenizer.from_pretrained(modelId, {
+          progress_callback: (progress) => {
+            if (progress && (progress.status === 'done' || progress.file)) {
+              tokenizerCached = progress.cached || false;
+              if (tokenizerCached) {
+                loaderSubtext.innerHTML = '✓ Tokenizer loaded from cache<br><span style="color: var(--success); font-size: 0.85rem;">Instant load!</span>';
+              } else {
+                loaderSubtext.innerHTML = '✓ Tokenizer downloaded<br><span style="color: var(--text-muted); font-size: 0.85rem;">Cached for next time</span>';
+              }
+              console.log(`✓ Tokenizer ${tokenizerCached ? 'cached' : 'downloaded'}`);
+            }
+          }
+        });
+        
+        // Step 3: Load model with optimization
+        progressBar.style.width = '40%';
+        
+        // Determine best configuration
+        let modelConfig = {};
+        let modelCached = false;
+        
+        if (hasWebGPU) {
+          // Use WebGPU with q4 quantization for best performance
+          modelConfig = { 
+            dtype: "q4",  // 4-bit quantization: ~68MB instead of ~270MB
+            device: "webgpu"
+          };
+          loaderText.textContent = 'LOADING MODEL (GPU + Q4)';
+          loaderSubtext.innerHTML = 'Loading quantized model with GPU acceleration...<br><span style="color: var(--success); font-size: 0.85rem;">~68MB download (4x smaller!)</span>';
+          console.log("✓ Using WebGPU with q4 quantization");
+        } else {
+          // Fallback to WASM with q8 for better CPU performance
+          modelConfig = { 
+            dtype: "q8",  // 8-bit quantization: ~135MB, better CPU performance
+            device: "wasm"
+          };
+          loaderText.textContent = 'LOADING MODEL (CPU + Q8)';
+          loaderSubtext.innerHTML = 'Loading quantized model for CPU...<br><span style="color: var(--text-muted); font-size: 0.85rem;">~135MB download</span>';
+          console.log("⚠ WebGPU unavailable, using WASM with q8 quantization");
+        }
+        
+        state.model = await AutoModelForCausalLM.from_pretrained(modelId, {
+          ...modelConfig,
+          progress_callback: (progress) => {
+            if (!progress) return;
+            
+            // Handle different progress callback formats
+            if (progress.status === 'progress' || (progress.loaded && progress.total)) {
+              const loaded = progress.loaded || 0;
+              const total = progress.total || 1;
+              const percent = 40 + Math.round((loaded / total) * 55);
+              progressBar.style.width = `${percent}%`;
+              
+              if (progress.cached) {
+                modelCached = true;
+                loaderText.textContent = `LOADING FROM CACHE (${percent}%)`;
+                loaderSubtext.innerHTML = `Loading model from browser cache...<br><span style="color: var(--success); font-size: 0.85rem;">${percent}% complete</span>`;
+              } else {
+                loaderText.textContent = `DOWNLOADING MODEL (${percent}%)`;
+                loaderSubtext.innerHTML = `Downloading model weights...<br><span style="color: var(--text-muted); font-size: 0.85rem;">${percent}% complete</span>`;
+              }
+            } else if (progress.status === 'done' || progress.file) {
+              progressBar.style.width = '98%';
+              if (progress.cached || modelCached) {
+                loaderText.textContent = 'MODEL READY (CACHED)';
+                loaderSubtext.innerHTML = '✓ Model loaded from cache<br><span style="color: var(--success); font-size: 0.85rem;">Subsequent loads will be instant!</span>';
+                console.log("✓ Model loaded from cache");
+              } else {
+                loaderText.textContent = 'MODEL READY (DOWNLOADED)';
+                loaderSubtext.innerHTML = '✓ Model downloaded and cached<br><span style="color: var(--success); font-size: 0.85rem;">Ready for next time!</span>';
+                console.log("✓ Model downloaded and cached");
+              }
+            }
+          }
+        });
+        
+        // Step 4: Complete
+        progressBar.style.width = '100%';
+        const loadTime = ((performance.now() - loadStartTime) / 1000).toFixed(1);
+        loaderText.textContent = 'SYSTEM READY';
+        loaderSubtext.innerHTML = `✓ Model initialization complete<br><span style="color: var(--success); font-size: 0.85rem;">Loaded in ${loadTime}s • Ready to test functions!</span>`;
+        await new Promise(r => setTimeout(r, 300));
+        
+        // Store model info in state
+        state.modelInfo = {
+          name: "functiongemma-270m",
+          version: "it-ONNX",
+          quantization: modelConfig.dtype || 'fp32',
+          device: modelConfig.device || 'default'
+        };
+        
+        // Track model load in telemetry
+        telemetry.trackModelLoad(parseFloat(loadTime));
+        telemetry.trackCacheHit(modelCached || tokenizerCached);
+        
+        // Cache model metadata in IndexedDB
+        try {
+          const db = await dbPromise;
+          await db.put('models', {
+            modelId: modelId,
+            config: modelConfig,
+            loadTime: loadTime,
+            cached: modelCached || tokenizerCached,
+            timestamp: Date.now()
+          }, 'current-model');
+        } catch (e) {
+          console.log('IndexedDB cache write failed:', e);
+        }
+        
+        console.log("✓ Model loaded successfully");
+        console.log(`  Device: ${modelConfig.device || 'default'}`);
+        console.log(`  Quantization: ${modelConfig.dtype || 'fp32'}`);
+        console.log(`  Cached: ${modelCached || tokenizerCached ? 'Yes' : 'No (first load)'}`);
+        console.log(`  Load time: ${loadTime}s`);
+        
+        // Update model info display
+        updateModelInfoDisplay();
+        
+        // Setup cache warmup after model is loaded
+        setupCacheWarmup();
+        
+      } catch(e) {
+        console.error("Model load failed:", e);
+        loaderText.textContent = '⚠ LOAD FAILED';
+        loaderSubtext.innerHTML = `Error: ${e.message}<br><span style="color: var(--alert); font-size: 0.85rem;">Please refresh the page</span>`;
+        progressBar.style.background = 'var(--alert)';
+        
+        // If WebGPU failed, try fallback
+        if (e.message && e.message.includes('webgpu') && hasWebGPU) {
+          console.log("⚠ WebGPU failed, retrying with WASM fallback...");
+          loaderText.textContent = 'RETRYING WITH CPU';
+          loaderSubtext.innerHTML = 'WebGPU failed, falling back to CPU...<br><span style="color: var(--text-muted); font-size: 0.85rem;">This may be slower</span>';
+          progressBar.style.background = 'var(--acid)';
+          
+          try {
+            state.model = await AutoModelForCausalLM.from_pretrained(modelId, {
+              dtype: "q8",
+              device: "wasm"
+            });
+            progressBar.style.width = '100%';
+            progressBar.style.background = 'var(--acid)';
+            loaderText.textContent = 'SYSTEM READY (CPU)';
+            loaderSubtext.innerHTML = '✓ Model loaded with CPU fallback<br><span style="color: var(--success); font-size: 0.85rem;">Ready to test functions!</span>';
+            console.log("✓ Model loaded with CPU fallback");
+            
+            // Store model info in state for fallback
+            state.modelInfo = {
+              name: "functiongemma-270m",
+              version: "it-ONNX",
+              quantization: "q8",
+              device: "wasm"
+            };
+            updateModelInfoDisplay();
+          } catch(fallbackError) {
+            console.error("Fallback also failed:", fallbackError);
+            throw fallbackError;
+          }
+        } else {
+          throw e;
+        }
+      } finally {
+        // Hide loader after a brief delay
+        setTimeout(() => {
+          loader.classList.add('hidden');
+        }, 500);
+      }
+    }
+
+    // Render Level
+    function renderLevel() {
+      const lvl = levels[state.levelIdx];
+      
+      document.getElementById('lvlName').innerText = lvl.title;
+      document.getElementById('lvlDesc').innerText = lvl.description;
+      document.getElementById('objectiveBadge').innerText = `LEVEL ${lvl.id} // ${lvl.difficulty}`;
+      document.getElementById('levelDisp').innerText = `0${lvl.id}`;
+      document.getElementById('scenarioCount').innerText = lvl.scenarios.length;
+      document.getElementById('scoreDisp').innerText = state.totalScore.toString().padStart(4, '0');
+      
+      // Render scenarios
+      const grid = document.getElementById('scenarioGrid');
+      grid.innerHTML = '';
+      lvl.scenarios.forEach((s, i) => {
+        const div = document.createElement('div');
+        div.className = 'scenario-card';
+        div.innerHTML = `
+          <div class="scenario-icon">${s.icon}</div>
+          <div class="scenario-text">${s.query}</div>
+          <div class="scenario-expected ${s.shouldTrigger ? 'should-trigger' : 'should-not'}">
+            ${s.shouldTrigger ? '✓ SHOULD' : '✗ SHOULD NOT'}
+          </div>
+        `;
+        div.style.opacity = '0';
+        div.style.transform = 'translateY(10px)';
+        grid.appendChild(div);
+        
+        setTimeout(() => {
+          div.style.transition = 'all 0.3s';
+          div.style.opacity = '1';
+          div.style.transform = 'translateY(0)';
+        }, i * 50);
+      });
+
+      // Render competitors
+      const compList = document.getElementById('competitorList');
+      if (lvl.competitors.length === 0) {
+        compList.innerHTML = '<div style="color: var(--success);">No competitors this level!</div>';
+      } else {
+        compList.innerHTML = lvl.competitors.map(c => `
+          <div class="competitor-fn">
+            <div class="fn-name-display">${c.name}()</div>
+            <div style="font-size: 0.75rem; color: #888;">${c.description}</div>
+          </div>
+        `).join('');
+      }
+
+      // Update achievements display
+      const achievementsList = document.getElementById('achievementsList');
+      if (achievementsList) {
+        if (state.achievements.length === 0) {
+          achievementsList.innerHTML = '<div style="color: #666;">No achievements yet...</div>';
+        } else {
+          const names = {
+            'first_perfect': '🏆 Perfect Score',
+            'streak_3': '🔥 On Fire!',
+            'streak_5': '⚡ Unstoppable!',
+            'score_1k': '💯 Score Master',
+            'all_levels': '👑 Master Engineer'
+          };
+          achievementsList.innerHTML = state.achievements.map(a => 
+            `<div style="color: var(--acid); margin-bottom: 5px;">${names[a] || a}</div>`
+          ).join('');
+        }
+      }
+
+      // Update streak display
+      updateStreakDisplay();
+
+      // Set starter code
+      document.getElementById('functionEditor').value = JSON.stringify(lvl.starterCode, null, 2);
+      validateJSON();
+      // Ensure textarea shows full content
+      setTimeout(autoResizeTextarea, 100);
+
+      // Reset result panel
+      document.getElementById('resultPanel').classList.remove('visible');
+      document.getElementById('nextBtn').style.display = 'none';
+    }
+
+    // JSON Validation and Auto-resize
+    const functionEditor = document.getElementById('functionEditor');
+    functionEditor.addEventListener('input', () => {
+      validateJSON();
+      autoResizeTextarea();
+    });
+
+    function getStandardTemplate() {
+      // Return template with helpful comments (as JSON comments aren't valid, we'll add them in a special way)
+      return {
+        name: "function_name",
+        description: "Clear, descriptive description of what this function does. Mention key operations and purpose.",
+        parameters: {
+          type: "object",
+          properties: {
+            param_1: {
+              type: "string",
+              description: "Description of the first parameter"
+            },
+            param_2: {
+              type: "string",
+              enum: ["option_a", "option_b", "option_c"],
+              description: "Parameter with fixed options (remove enum if not needed)"
+            },
+            param_3: {
+              type: "number",
+              description: "Numeric parameter (use number for amounts, counts, etc)"
+            }
+          },
+          required: ["param_1", "param_2"]
+        },
+        _hints: [
+          "💡 TIP: Function name should be specific and descriptive",
+          "💡 TIP: Description is KEY - AI reads this to decide when to call your function",
+          "💡 TIP: Use enums to constrain values and make intent clearer",
+          "💡 TIP: Required fields help the model understand what's essential",
+          "💡 TIP: Be explicit about what your function does AND what it doesn't do"
+        ]
+      };
+    }
+
+    function getTemplateWithComments() {
+      return `{
+  // 💡 FUNCTION DEFINITION TEMPLATE WITH HINTS
+  // ===========================================
+  // 
+  // 💡 TIP: Function name should be specific and descriptive
+  //    Good: "get_weather", "create_task", "process_payment"
+  //    Bad: "do_stuff", "function1", "data"
+  //
+  "name": "function_name",
+  
+  // 💡 TIP: Description is THE MOST IMPORTANT part!
+  //    - AI reads this to decide when to call your function
+  //    - Be specific about what it does
+  //    - Mention key operations (get, create, process, etc.)
+  //    - Explicitly exclude what it doesn't do (if needed)
+  //
+  "description": "Clear, descriptive description of what this function does. Mention key operations and purpose.",
+  
+  "parameters": {
+    "type": "object",
+    "properties": {
+      // 💡 TIP: Parameter names should be clear and descriptive
+      "param_1": {
+        "type": "string",
+        // 💡 TIP: Parameter description helps AI understand what to extract
+        "description": "Description of the first parameter"
+      },
+      
+      // 💡 TIP: Use enums to constrain values - makes intent clearer!
+      //    Remove the enum array if you don't need fixed options
+      "param_2": {
+        "type": "string",
+        "enum": ["option_a", "option_b", "option_c"],
+        "description": "Parameter with fixed options (remove enum if not needed)"
+      },
+      
+      // 💡 TIP: Use "number" type for amounts, counts, quantities
+      //    Use "string" for text, IDs, names
+      //    Use "boolean" for true/false values
+      "param_3": {
+        "type": "number",
+        "description": "Numeric parameter (use number for amounts, counts, etc)"
+      }
+    },
+    // 💡 TIP: Required fields help the model understand what's essential
+    //    Only include parameters that are truly required
+    "required": ["param_1", "param_2"]
+  }
+}`;
+    }
+
+    window.loadTemplate = function() {
+      const editor = document.getElementById('functionEditor');
+      // Use template with comments (as a string since JSON doesn't support comments)
+      editor.value = getTemplateWithComments();
+      // Try to validate (will fail due to comments, but that's okay)
+      try {
+        // Remove comments and validate
+        const cleaned = editor.value.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+        const parsed = JSON.parse(cleaned);
+        state.currentFunction = parsed;
+        document.getElementById('jsonOutput').style.color = 'var(--success)';
+        document.getElementById('jsonOutput').textContent = '✓ Template loaded (comments are for reference only)';
+      } catch(e) {
+        document.getElementById('jsonOutput').style.color = 'var(--text-muted)';
+        document.getElementById('jsonOutput').textContent = '💡 Template with hints loaded. Remove comments (// lines) before testing.';
+      }
+      
+      // Auto-resize to show full template
+      setTimeout(autoResizeTextarea, 100);
+    };
+
+    // Execution Logs
+    function addLog(label, content, type = 'info') {
+      const logsContent = document.getElementById('logsContent');
+      
+      // Clear placeholder if it exists
+      if (logsContent.innerHTML.includes('Logs will appear here')) {
+        logsContent.innerHTML = '';
+      }
+
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      
+      const time = new Date().toLocaleTimeString();
+      let html = `<div class="log-time">[${time}]</div>`;
+      html += `<span class="log-label">${label}</span>`;
+      
+      if (type === 'prompt') {
+        html += `<div class="log-prompt"><strong>📝 PROMPT:</strong><br>"${content}"</div>`;
+      } else if (type === 'tools') {
+        html += `<div class="log-tools"><strong>🔧 AVAILABLE FUNCTIONS:</strong><br>${content}</div>`;
+      } else if (type === 'triggered') {
+        html += `<span class="log-success">✅ ${content}</span>`;
+      } else if (type === 'error') {
+        html += `<span class="log-error">❌ ${content}</span>`;
+      } else {
+        html += `<span class="log-${type}">${content}</span>`;
+      }
+      
+      entry.innerHTML = html;
+      logsContent.insertBefore(entry, logsContent.firstChild);
+      logsContent.scrollTop = 0;
+    }
+
+    window.clearLogs = function() {
+      const logsContent = document.getElementById('logsContent');
+      logsContent.innerHTML = '<div style="color: #666; text-align: center; padding: 40px 20px;">Logs cleared. Run a test to see new logs...</div>';
+    };
+
+    // Auto-resize textarea to fit content
+    function autoResizeTextarea() {
+      const editor = document.getElementById('functionEditor');
+      if (editor) {
+        // Reset height to auto to get the correct scrollHeight
+        editor.style.height = 'auto';
+        // Set height to scrollHeight, but ensure minimum height
+        const newHeight = Math.max(300, editor.scrollHeight);
+        editor.style.height = newHeight + 'px';
+      }
+    }
+
+    function validateJSON() {
+      const editor = document.getElementById('functionEditor');
+      const output = document.getElementById('jsonOutput');
+      
+      try {
+        // Remove comments before parsing
+        let cleaned = editor.value
+          .replace(/\/\/.*$/gm, '')  // Remove single-line comments
+          .replace(/\/\*[\s\S]*?\*\//g, '');  // Remove multi-line comments
+        
+        const parsed = JSON.parse(cleaned);
+        state.currentFunction = parsed;
+        
+        // Validate required fields
+        if (!parsed.name || !parsed.description) {
+          throw new Error("Missing 'name' or 'description'");
+        }
+        
+        // Additional validation
+        const warnings = [];
+        if (parsed.name === 'function_name' || parsed.name.includes('_name')) {
+          warnings.push('⚠️ Consider changing the function name to something specific');
+        }
+        if (parsed.description.length < 20) {
+          warnings.push('⚠️ Description seems short - be more descriptive!');
+        }
+        if (parsed.description === 'Clear, descriptive description of what this function does. Mention key operations and purpose.') {
+          warnings.push('⚠️ Update the description to match your function!');
+        }
+        
+        output.style.color = 'var(--success)';
+        let outputText = '✓ Valid JSON Schema\n\n' + JSON.stringify(parsed, null, 2);
+        if (warnings.length > 0) {
+          outputText = warnings.join('\n') + '\n\n' + outputText;
+          output.style.color = 'var(--acid)';
+        }
+        output.textContent = outputText;
+      } catch(e) {
+        output.style.color = 'var(--alert)';
+        output.textContent = `✗ JSON Error: ${e.message}\n\n💡 Tip: Remove any comments (// lines) before testing.\n💡 Tip: Make sure all strings are in double quotes.`;
+        state.currentFunction = null;
+      }
+      
+      // Auto-resize textarea after validation
+      autoResizeTextarea();
+    }
+
+    // Test Function
+    window.testFunction = async function() {
+      if (!state.currentFunction) {
+        alert('Please fix your JSON first!');
+        return;
+      }
+
+      const btn = document.getElementById('testBtn');
+      const testLoader = document.getElementById('testLoader');
+      const testProgress = document.getElementById('testProgress');
+      
+      btn.disabled = true;
+      btn.innerText = 'TESTING...';
+      
+      // Show loader after a brief delay to avoid flickering
+      let loaderTimeout = setTimeout(() => {
+        testLoader.classList.add('visible');
+        testProgress.textContent = 'Preparing test environment...';
+      }, 100);
+
+      try {
+        const lvl = levels[state.levelIdx];
+        const results = [];
+        let score = 0;
+        const totalScenarios = lvl.scenarios.length;
+
+        // Build tools array
+        const tools = [
+          {
+            type: "function",
+            function: state.currentFunction
+          },
+          ...lvl.competitors.map(c => ({
+            type: "function",
+            function: c
+          }))
+        ];
+
+        // Log function definitions
+        addLog('FUNCTION_SCHEMA', 'Loaded function definitions for testing', 'info');
+        const toolsHtml = tools.map(t => 
+          `<div class="log-function"><span class="log-function-name">${t.function.name}</span>() - ${t.function.description}</div>`
+        ).join('');
+        addLog('AVAILABLE_TOOLS', toolsHtml, 'tools');
+
+        // Test each scenario
+        for (let i = 0; i < lvl.scenarios.length; i++) {
+          const scenario = lvl.scenarios[i];
+          const scenarioNum = i + 1;
+          testProgress.textContent = `Testing scenario ${scenarioNum}/${totalScenarios}: "${scenario.query.substring(0, 40)}${scenario.query.length > 40 ? '...' : ''}"`;
+          addLog('TEST_START', `Testing scenario: "${scenario.query}"`, 'info');
+          
+          const messages = [
+            { role: "developer", content: "You are a function calling model. Select the most appropriate function for the user's request." },
+            { role: "user", content: scenario.query }
+          ];
+
+          addLog('USER_PROMPT', scenario.query, 'prompt');
+
+          try {
+            const inputs = await state.tokenizer.apply_chat_template(messages, {
+              tools: tools,
+              tokenize: true,
+              add_generation_prompt: true,
+              return_dict: true
+            });
+
+            const genStart = performance.now();
+            const output = await state.model.generate({
+              ...inputs,
+              max_new_tokens: 128,
+              do_sample: false
+            });
+            const genTime = performance.now() - genStart;
+            
+            // Track generation time in telemetry
+            telemetry.trackGeneration(genTime);
+
+            const decoded = await state.tokenizer.decode(output.slice(0, [inputs.input_ids.dims[1], null]), { skip_special_tokens: false });
+            
+            addLog('MODEL_OUTPUT', `Generated in ${genTime.toFixed(0)}ms`, 'info');
+            addLog('RAW_OUTPUT', decoded.substring(0, 200) + (decoded.length > 200 ? '...' : ''), 'info');
+            
+            // Extract triggered function - improved pattern matching
+            let triggered = null;
+            
+            // Pattern 1: call:function_name
+            const match1 = decoded.match(/call:\s*"?(\w+)"?/i);
+            if (match1) triggered = match1[1];
+            
+            // Pattern 2: function: "function_name" or function: function_name
+            if (!triggered) {
+              const match2 = decoded.match(/function:\s*"?(\w+)"?/i);
+              if (match2) triggered = match2[1];
+            }
+            
+            // Pattern 3: "name": "function_name"
+            if (!triggered) {
+              const match3 = decoded.match(/"name"\s*:\s*"(\w+)"/i);
+              if (match3) triggered = match3[1];
+            }
+            
+            // Pattern 4: <tool_call> or similar XML-like tags
+            if (!triggered) {
+              const match4 = decoded.match(/<tool_call[^>]*>[\s\S]*?name["\s:=]+(\w+)/i);
+              if (match4) triggered = match4[1];
+            }
+            
+            // Pattern 5: Look for function names from available tools
+            if (!triggered) {
+              const allFunctionNames = tools.map(t => t.function.name);
+              for (const fnName of allFunctionNames) {
+                // Check if function name appears in decoded output in a meaningful context
+                const regex = new RegExp(`\\b${fnName}\\b`, 'i');
+                if (regex.test(decoded)) {
+                  // Additional check: make sure it's not just in a description
+                  const contextMatch = decoded.match(new RegExp(`(call|function|name|invoke|use|select)[\\s:="]*${fnName}`, 'i'));
+                  if (contextMatch) {
+                    triggered = fnName;
+                    break;
+                  }
+                }
+              }
+            }
+
+            addLog('FUNCTION_DETECTED', triggered ? triggered : 'NONE', triggered ? 'triggered' : 'error');
+
+            const triggeredYourFunction = triggered === state.currentFunction.name;
+            const shouldHaveTriggered = scenario.shouldTrigger;
+
+            // Evaluate result
+            let result = {
+              query: scenario.query,
+              expected: shouldHaveTriggered,
+              triggered: triggeredYourFunction,
+              correctFunction: triggered,
+              icon: scenario.icon
+            };
+
+            if (shouldHaveTriggered && triggeredYourFunction) {
+              // Correct positive
+              result.status = 'correct';
+              result.points = 100;
+              score += 100;
+              addLog('RESULT_EVAL', `✅ CORRECT! Expected: ${state.currentFunction.name}, Got: ${triggered}`, 'success');
+            } else if (!shouldHaveTriggered && !triggeredYourFunction) {
+              // Correct negative
+              result.status = 'correct';
+              result.points = 50;
+              score += 50;
+              addLog('RESULT_EVAL', `✅ CORRECT! Expected: NO TRIGGER, Got: NONE`, 'success');
+            } else if (shouldHaveTriggered && !triggeredYourFunction) {
+              // False negative (missed trigger)
+              result.status = 'wrong';
+              result.points = 0;
+              addLog('RESULT_EVAL', `❌ WRONG! Expected: ${state.currentFunction.name}, Got: ${triggered || 'NONE'}`, 'error');
+            } else {
+              // False positive (wrong trigger)
+              result.status = 'wrong';
+              result.points = -50;
+              score -= 50;
+              addLog('RESULT_EVAL', `❌ WRONG! Expected: NO TRIGGER, Got: ${triggered || 'NONE'}`, 'error');
+            }
+
+            results.push(result);
+            
+            // Update scenario card visual feedback
+            const scenarioCards = document.querySelectorAll('.scenario-card');
+            if (scenarioCards[i]) {
+              scenarioCards[i].classList.add(result.status);
+              setTimeout(() => {
+                scenarioCards[i].classList.remove(result.status);
+              }, 2000);
+            }
+
+          } catch(e) {
+            console.error('Test error:', e);
+            addLog('ERROR', `${e.message}`, 'error');
+            results.push({
+              query: scenario.query,
+              status: 'error',
+              points: 0,
+              icon: scenario.icon
+            });
+          }
+        }
+
+        // Display results
+        displayResults(results, score);
+      } catch(error) {
+        console.error('Test function error:', error);
+        addLog('FATAL_ERROR', `Test failed: ${error.message}`, 'error');
+      } finally {
+        // Always hide loader and re-enable button
+        clearTimeout(loaderTimeout);
+        testLoader.classList.remove('visible');
+        btn.disabled = false;
+        btn.innerText = 'TEST FUNCTION';
+      }
+    };
+
+    function displayResults(results, score) {
+      const panel = document.getElementById('resultPanel');
+      const title = document.getElementById('resultTitle');
+      const scoreEl = document.getElementById('resultScore');
+      const breakdown = document.getElementById('resultBreakdown');
+
+      const passed = results.every(r => r.status === 'correct');
+      
+      title.innerText = passed ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED';
+      title.className = `result-title ${passed ? 'success' : 'fail'}`;
+      
+      scoreEl.innerText = (score >= 0 ? '+' : '') + score;
+      scoreEl.className = `result-score ${score >= 0 ? 'success' : 'fail'}`;
+
+      breakdown.innerHTML = results.map(r => `
+        <div class="result-item ${r.status}">
+          <span>${r.icon} ${r.query}</span>
+          <span style="font-weight: bold;">
+            ${r.points >= 0 ? '+' : ''}${r.points} pts
+            ${r.correctFunction && r.correctFunction !== 'null' ? ` (${r.correctFunction})` : ''}
+          </span>
+        </div>
+      `).join('');
+
+      panel.classList.add('visible');
+
+      // Always show next button - users can proceed even if they failed
+      document.getElementById('nextBtn').style.display = 'block';
+
+      if (passed) {
+        // Only add score if they passed
+        state.totalScore += score;
+        document.getElementById('scoreDisp').innerText = state.totalScore.toString().padStart(4, '0');
+        
+        // Track level completion in telemetry
+        telemetry.trackLevelComplete(state.levelIdx + 1, score, true);
+        
+        // Check achievements
+        checkAchievements(results, score);
+        
+        // Update streak display
+        updateStreakDisplay();
+      } else {
+        // On failure, don't add score but allow progression
+        state.streak = 0;
+        updateStreakDisplay();
+        
+        // Track level completion (failed) in telemetry
+        telemetry.trackLevelComplete(state.levelIdx + 1, score, false);
+      }
+      
+      // Setup cache warmup for next level
+      setupCacheWarmup();
+      
+      // Calculate accuracy
+      const totalScenarios = (state.levelIdx + 1) * levels[state.levelIdx].scenarios.length;
+      const accuracy = totalScenarios > 0 ? Math.round((state.totalScore / (totalScenarios * 100)) * 100) : 0;
+      document.getElementById('accuracyDisp').innerText = `${accuracy}%`;
+      
+      // Track level attempts
+      const levelKey = `level_${state.levelIdx + 1}`;
+      state.levelAttempts[levelKey] = (state.levelAttempts[levelKey] || 0) + 1;
+      saveState();
+    }
+
+    // Next Level
+    window.nextLevel = function() {
+      state.levelIdx++;
+      if (state.levelIdx >= levels.length) {
+        victory();
+      } else {
+        clearLogs();
+        renderLevel();
+        
+        // Track level navigation
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'level_navigation', {
+            level_id: state.levelIdx + 1,
+            action: 'next'
+          });
+        }
+      }
+    };
+
+    // Reset Editor
+    window.resetEditor = function() {
+      const lvl = levels[state.levelIdx];
+      document.getElementById('functionEditor').value = JSON.stringify(lvl.starterCode, null, 2);
+      validateJSON();
+      setTimeout(autoResizeTextarea, 100);
+    };
+
+    // Check and unlock achievements
+    function checkAchievements(results, score) {
+      const newAchievements = [];
+      
+      // First perfect score
+      if (results.every(r => r.status === 'correct') && !state.achievements.includes('first_perfect')) {
+        newAchievements.push({ id: 'first_perfect', name: 'Perfect Score', desc: 'Got all scenarios correct!' });
+        state.achievements.push('first_perfect');
+      }
+      
+      // Streak achievements
+      if (results.every(r => r.status === 'correct')) {
+        state.streak++;
+        if (state.streak > state.bestStreak) {
+          state.bestStreak = state.streak;
+        }
+        if (state.streak === 3 && !state.achievements.includes('streak_3')) {
+          newAchievements.push({ id: 'streak_3', name: 'On Fire!', desc: '3 perfect levels in a row!' });
+          state.achievements.push('streak_3');
+        }
+        if (state.streak === 5 && !state.achievements.includes('streak_5')) {
+          newAchievements.push({ id: 'streak_5', name: 'Unstoppable!', desc: '5 perfect levels in a row!' });
+          state.achievements.push('streak_5');
+        }
+      } else {
+        state.streak = 0;
+      }
+      
+      // Score milestones
+      if (state.totalScore >= 1000 && !state.achievements.includes('score_1k')) {
+        newAchievements.push({ id: 'score_1k', name: 'Score Master', desc: 'Reached 1000 points!' });
+        state.achievements.push('score_1k');
+      }
+      
+      // Level completion
+      if (state.levelIdx === 4 && !state.achievements.includes('all_levels')) {
+        newAchievements.push({ id: 'all_levels', name: 'Master Engineer', desc: 'Completed all levels!' });
+        state.achievements.push('all_levels');
+      }
+      
+      // Show new achievements
+      if (newAchievements.length > 0) {
+        showAchievementNotification(newAchievements);
+      }
+      
+      saveState();
+    }
+
+    function showAchievementNotification(achievements) {
+      achievements.forEach((ach, idx) => {
+        setTimeout(() => {
+          const notif = document.createElement('div');
+          notif.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--panel);
+            border: 3px solid var(--acid);
+            padding: 20px;
+            z-index: 10002;
+            animation: slideInRight 0.5s var(--ease-out-expo);
+            box-shadow: var(--hard-shadow);
+            max-width: 300px;
+          `;
+          notif.innerHTML = `
+            <div style="color: var(--acid); font-weight: bold; margin-bottom: 5px;">🏆 ACHIEVEMENT UNLOCKED</div>
+            <div style="font-size: 1.2rem; margin-bottom: 5px;">${ach.name}</div>
+            <div style="color: var(--text-muted); font-size: 0.9rem;">${ach.desc}</div>
+          `;
+          document.body.appendChild(notif);
+          
+          setTimeout(() => {
+            notif.style.animation = 'slideOutRight 0.5s var(--ease-out-expo)';
+            setTimeout(() => notif.remove(), 500);
+          }, 3000);
+        }, idx * 400);
+      });
+    }
+
+
+    function updateStreakDisplay() {
+      // Update streak in sidebar if element exists
+      const streakEl = document.getElementById('streakDisp');
+      if (streakEl) {
+        streakEl.innerText = state.streak;
+        streakEl.parentElement.style.display = state.streak > 0 ? 'flex' : 'none';
+      }
+    }
+
+    function updateModelInfoDisplay() {
+      const modelInfoEl = document.getElementById('modelInfo');
+      if (modelInfoEl && state.modelInfo.name) {
+        document.getElementById('modelName').textContent = state.modelInfo.name;
+        document.getElementById('modelVersion').textContent = state.modelInfo.version || '-';
+        document.getElementById('modelQuantization').textContent = state.modelInfo.quantization.toUpperCase();
+        document.getElementById('modelDevice').textContent = state.modelInfo.device.toUpperCase();
+        modelInfoEl.style.display = 'block';
+      }
+    }
+
+    // Hints
+    window.toggleHints = function() {
+      const panel = document.getElementById('hintPanel');
+      const content = document.getElementById('hintContent');
+      const lvl = levels[state.levelIdx];
+      
+      if (panel.classList.contains('visible')) {
+        panel.classList.remove('visible');
+      } else {
+        state.hintsUsed++;
+        saveState();
+        content.innerHTML = lvl.hints.map((h, i) => 
+          `<p style="margin-bottom: 8px;"><strong>${i+1}.</strong> ${h}</p>`
+        ).join('');
+        panel.classList.add('visible');
+      }
+    };
+
+    // Rules Modal
+    window.toggleRules = function() {
+      const modal = document.getElementById('rulesModal');
+      modal.classList.toggle('visible');
+    };
+
+    // Reset Progress
+    window.resetProgress = function() {
+      if (!confirm('⚠️ WARNING: This will reset ALL progress, achievements, and scores!\n\nAre you sure?')) {
+        return;
+      }
+      
+      state.totalScore = 0;
+      state.achievements = [];
+      state.streak = 0;
+      state.bestStreak = 0;
+      state.levelAttempts = {};
+      state.hintsUsed = 0;
+      state.levelIdx = 0;
+      
+      localStorage.removeItem('functionArenaState');
+      
+      // Update UI
+      const scoreDisp = document.getElementById('scoreDisp');
+      const accuracyDisp = document.getElementById('accuracyDisp');
+      if (scoreDisp) scoreDisp.innerText = '0000';
+      if (accuracyDisp) accuracyDisp.innerText = '--';
+      updateStreakDisplay();
+      
+      const achievementsList = document.getElementById('achievementsList');
+      if (achievementsList) {
+        achievementsList.innerHTML = '<div style="color: #666;">No achievements yet...</div>';
+      }
+      
+      // Reload level
+      clearLogs();
+      renderLevel();
+      
+      alert('Progress reset! Starting fresh...');
+    };
+
+    // Victory
+    function victory() {
+      const achievementsCount = state.achievements.length;
+      const totalAttempts = Object.values(state.levelAttempts).reduce((a, b) => a + b, 0);
+      const avgAttempts = totalAttempts / 5;
+      
+      document.body.innerHTML = `
+        <div style="height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; background: var(--void); padding: 20px;">
+          <div class="noise-overlay"></div>
+          <div class="scanlines"></div>
+          
+          <h1 style="font-size: 4rem; color: var(--acid); margin-bottom: 20px; font-family: 'Clash Display'; text-transform: uppercase; animation: pulse 2s infinite;">
+            🏆 TRAINING_COMPLETE 🏆
+          </h1>
+          
+          <p style="font-family: 'Space Mono'; margin-bottom: 40px; color: var(--text-muted); font-size: 1.2rem;">
+            You've mastered function definition engineering!
+          </p>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 800px; width: 100%; margin-bottom: 40px;">
+            <div style="border: 3px solid var(--success); padding: 20px; background: var(--panel);">
+              <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">FINAL SCORE</div>
+              <div style="font-size: 2.5rem; font-family: 'Clash Display'; color: var(--success);">${state.totalScore}</div>
+            </div>
+            
+            <div style="border: 3px solid var(--hyper-purple); padding: 20px; background: var(--panel);">
+              <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">ACHIEVEMENTS</div>
+              <div style="font-size: 2.5rem; font-family: 'Clash Display'; color: var(--hyper-purple);">${achievementsCount}/5</div>
+            </div>
+            
+            <div style="border: 3px solid var(--acid); padding: 20px; background: var(--panel);">
+              <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">BEST STREAK</div>
+              <div style="font-size: 2.5rem; font-family: 'Clash Display'; color: var(--acid);">${state.bestStreak}</div>
+            </div>
+          </div>
+          
+          ${achievementsCount > 0 ? `
+          <div style="max-width: 600px; margin-bottom: 40px; padding: 20px; background: var(--panel); border: 2px solid var(--acid);">
+            <div style="color: var(--acid); font-weight: bold; margin-bottom: 15px; font-size: 1.1rem;">YOUR ACHIEVEMENTS</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+              ${state.achievements.map(a => {
+                const names = {
+                  'first_perfect': '🏆 Perfect Score',
+                  'streak_3': '🔥 On Fire!',
+                  'streak_5': '⚡ Unstoppable!',
+                  'score_1k': '💯 Score Master',
+                  'all_levels': '👑 Master Engineer'
+                };
+                return `<div style="color: var(--acid); padding: 10px; background: rgba(204,255,0,0.1);">${names[a] || a}</div>`;
+              }).join('')}
+            </div>
+          </div>
+          ` : ''}
+          
+          <p style="max-width: 600px; line-height: 1.6; color: var(--text-muted); margin-bottom: 40px;">
+            You now understand how to craft precise function definitions, use enums effectively, 
+            and distinguish your functions from competitors. Apply this knowledge to build better AI integrations!
+          </p>
+          
+          <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+            <button onclick="location.reload()" style="background: var(--text-main); color: var(--void); padding: 20px 40px; font-family: 'Clash Display'; font-size: 1.2rem; border: none; cursor: pointer; font-weight: 700; transition: all 0.2s;">
+              TRAIN AGAIN
+            </button>
+            <button onclick="resetProgress(); location.reload();" style="background: transparent; color: var(--alert); padding: 20px 40px; font-family: 'Clash Display'; font-size: 1.2rem; border: 2px solid var(--alert); cursor: pointer; font-weight: 700; transition: all 0.2s;">
+              RESET & RESTART
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Initialize
+    window.addEventListener('load', () => {
+      loadState();
+      bootSequence();
+    });
+    
+    // Save state periodically
+    setInterval(() => {
+      if (state.booted) {
+        saveState();
+      }
+    }, 30000); // Every 30 seconds
+  </script>
+</body>
+</html>
