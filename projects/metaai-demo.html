@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LlamaPrompt Studio - Meta Llama 4 Prompt Engineering Playground</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f2f5 0%, #e4e6eb 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #1877f2 0%, #0a66c2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-color: #e5e7eb;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(24, 119, 242, 0.15);
+            border-color: #1877f2;
+            background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+        }
+        
+        .code-block {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .prompt-good {
+            border-left: 4px solid #10b981;
+        }
+        
+        .prompt-bad {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .tab-active {
+            background: #f0f2f5;
+            color: #1877f2;
+            border-bottom: 3px solid #1877f2;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .animation-fadeIn {
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        .animation-delay-1 {
+            animation: fadeIn 0.4s ease-out 0.1s both;
+        }
+        
+        .animation-delay-2 {
+            animation: fadeIn 0.4s ease-out 0.2s both;
+        }
+        
+        .animation-delay-3 {
+            animation: fadeIn 0.4s ease-out 0.3s both;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            animation: fadeInScale 0.4s ease;
+        }
+        
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .badge-success { background: #e0f2fe; color: #0369a1; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-info { background: #dbeafe; color: #1877f2; }
+        .badge-purple { background: #ede9fe; color: #1877f2; }
+    </style>
+</head>
+<body class="min-h-screen p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="bg-white rounded-2xl shadow-2xl p-8 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h1 class="text-4xl font-bold gradient-text mb-2">LlamaPrompt Studio</h1>
+                    <p class="text-gray-600 text-lg">Master Prompt Engineering for Meta Llama 4 Models</p>
+                </div>
+                <div class="text-right">
+                    <span class="badge badge-purple">Llama 4 Optimized</span>
+                    <p class="text-sm text-gray-500 mt-2">By: Your Name</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg hover:shadow-md transition-shadow animation-delay-1">
+                    <div class="text-2xl font-bold text-blue-600">15+</div>
+                    <div class="text-sm text-gray-600">Production Templates</div>
+                </div>
+                <div class="bg-gradient-to-r from-blue-50 to-sky-100 p-4 rounded-lg hover:shadow-md transition-shadow animation-delay-2">
+                    <div class="text-2xl font-bold text-blue-600">8</div>
+                    <div class="text-sm text-gray-600">Optimization Techniques</div>
+                </div>
+                <div class="bg-gradient-to-r from-sky-50 to-blue-100 p-4 rounded-lg hover:shadow-md transition-shadow animation-delay-3">
+                    <div class="text-2xl font-bold text-blue-600">2</div>
+                    <div class="text-sm text-gray-600">Llama 4 Models Covered</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white rounded-t-2xl shadow-lg p-2 flex flex-wrap gap-2">
+            <button onclick="showTab('templates')" id="tab-templates" class="tab-active px-6 py-3 rounded-lg font-semibold transition-all">
+                Prompt Templates
+            </button>
+            <button onclick="showTab('optimization')" id="tab-optimization" class="px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all">
+                Optimization Guide
+            </button>
+            <button onclick="showTab('models')" id="tab-models" class="px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all">
+                Model Comparison
+            </button>
+            <button onclick="showTab('multimodal')" id="tab-multimodal" class="px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all">
+                Multimodal Patterns
+            </button>
+            <button onclick="showTab('architecture')" id="tab-architecture" class="px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all">
+                Architecture
+            </button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="bg-white rounded-b-2xl shadow-2xl p-8">
+            <!-- Templates Tab -->
+            <div id="content-templates" class="tab-content">
+                <h2 class="text-3xl font-bold mb-6 gradient-text">Production-Ready Prompt Templates</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Template Card 1 -->
+                     <div class="border-2 border-gray-200 rounded-xl p-6 card-hover cursor-pointer" onclick="loadTemplate('coding')">
+                         <div class="flex items-center justify-between mb-3">
+                             <h3 class="text-xl font-bold text-gray-800">Code Generation</h3>
+                            <span class="badge badge-info">Scout 17B</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Generate production-ready code with proper error handling and documentation</p>
+                        <div class="text-sm text-blue-600 font-semibold">Click to view template →</div>
+                    </div>
+
+                    <!-- Template Card 2 -->
+                     <div class="border-2 border-gray-200 rounded-xl p-6 card-hover cursor-pointer" onclick="loadTemplate('analysis')">
+                         <div class="flex items-center justify-between mb-3">
+                             <h3 class="text-xl font-bold text-gray-800">Data Analysis</h3>
+                            <span class="badge badge-success">Maverick 400B</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Deep analytical reasoning with structured output formats</p>
+                        <div class="text-sm text-blue-600 font-semibold">Click to view template →</div>
+                    </div>
+
+                    <!-- Template Card 3 -->
+                     <div class="border-2 border-gray-200 rounded-xl p-6 card-hover cursor-pointer" onclick="loadTemplate('customercare')">
+                         <div class="flex items-center justify-between mb-3">
+                             <h3 class="text-xl font-bold text-gray-800">Customer Care Agent</h3>
+                            <span class="badge badge-info">Scout 17B</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Empathetic customer support with context-aware responses</p>
+                        <div class="text-sm text-blue-600 font-semibold">Click to view template →</div>
+                    </div>
+
+                    <!-- Template Card 4 -->
+                     <div class="border-2 border-gray-200 rounded-xl p-6 card-hover cursor-pointer" onclick="loadTemplate('rag')">
+                         <div class="flex items-center justify-between mb-3">
+                             <h3 class="text-xl font-bold text-gray-800">RAG System</h3>
+                            <span class="badge badge-warning">Both Models</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Retrieval-augmented generation with citation tracking</p>
+                        <div class="text-sm text-blue-600 font-semibold">Click to view template →</div>
+                    </div>
+                </div>
+
+                <!-- Template Display -->
+                <div id="templateDisplay" class="bg-gray-50 rounded-xl p-6 border-2 border-blue-200 animation-fadeIn">
+                    <div class="text-center text-gray-500 py-8">
+                        <p class="text-lg">Click on any template card above to view the prompt structure</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optimization Tab -->
+            <div id="content-optimization" class="tab-content hidden">
+                <h2 class="text-3xl font-bold mb-6 gradient-text">Prompt Optimization Techniques</h2>
+                
+                <div class="space-y-8">
+                    <!-- Technique 1: Chain of Thought -->
+                     <div class="border-2 border-gray-200 rounded-xl p-6">
+                         <h3 class="text-2xl font-bold mb-4 text-gray-800">Chain-of-Thought (CoT) Reasoning</h3>
+                        <p class="text-gray-600 mb-4">Break down complex problems into step-by-step reasoning for better accuracy</p>
+                        
+                        <div class="comparison-grid">
+                            <div class="prompt-bad bg-red-50 p-4 rounded-lg">
+                                 <div class="flex items-center mb-2">
+                                     <span class="text-red-600 font-bold mr-2">Without CoT</span>
+                                 </div>
+                                <div class="code-block text-gray-300">
+                                    <pre>Calculate the total cost:
+Product A: $45
+Product B: $67
+Tax: 18%
+Discount: 10%</pre>
+                                </div>
+                                <p class="text-sm text-red-700 mt-2">May produce incorrect calculations</p>
+                            </div>
+                            
+                            <div class="prompt-good bg-green-50 p-4 rounded-lg">
+                                 <div class="flex items-center mb-2">
+                                     <span class="text-green-600 font-bold mr-2">With CoT</span>
+                                 </div>
+                                <div class="code-block text-gray-300">
+                                    <pre>Calculate step by step:
+1. Sum products: $45 + $67
+2. Apply 10% discount
+3. Add 18% tax
+4. Show final total
+
+Think through each step.</pre>
+                                </div>
+                                <p class="text-sm text-green-700 mt-2">95% accuracy improvement</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Technique 2: Few-Shot Learning -->
+                     <div class="border-2 border-gray-200 rounded-xl p-6">
+                         <h3 class="text-2xl font-bold mb-4 text-gray-800">Few-Shot Learning</h3>
+                        <p class="text-gray-600 mb-4">Provide examples to guide the model's output format and style</p>
+                        
+                        <div class="comparison-grid">
+                            <div class="prompt-bad bg-red-50 p-4 rounded-lg">
+                                 <div class="flex items-center mb-2">
+                                     <span class="text-red-600 font-bold mr-2">Zero-Shot</span>
+                                 </div>
+                                <div class="code-block text-gray-300">
+                                    <pre>Extract entities from:
+"Apple released iPhone 15 
+in Cupertino last September"</pre>
+                                </div>
+                                <p class="text-sm text-red-700 mt-2">Inconsistent output format</p>
+                            </div>
+                            
+                            <div class="prompt-good bg-green-50 p-4 rounded-lg">
+                                 <div class="flex items-center mb-2">
+                                     <span class="text-green-600 font-bold mr-2">Few-Shot</span>
+                                 </div>
+                                <div class="code-block text-gray-300">
+                                    <pre>Extract entities as JSON:
+
+Example: "Tesla opened in Austin"
+{"company":"Tesla","loc":"Austin"}
+
+Now extract from:
+"Apple released iPhone 15..."</pre>
+                                </div>
+                                <p class="text-sm text-green-700 mt-2">Structured, consistent output</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Technique 3: Role-Based Prompting -->
+                    <div class="border-2 border-gray-200 rounded-xl p-6">
+                        <h3 class="text-2xl font-bold mb-4 text-gray-800">3. Role-Based Prompting</h3>
+                        <p class="text-gray-600 mb-4">Assign specific expertise roles to improve response quality</p>
+                        
+                        <div class="comparison-grid">
+                            <div class="prompt-bad bg-red-50 p-4 rounded-lg">
+                                 <div class="flex items-center mb-2">
+                                     <span class="text-red-600 font-bold mr-2">Generic</span>
+                                 </div>
+                                <div class="code-block text-gray-300">
+                                    <pre>Explain quantum computing.</pre>
+                                </div>
+                                <p class="text-sm text-red-700 mt-2">Generic, unfocused response</p>
+                            </div>
+                            
+                            <div class="prompt-good bg-green-50 p-4 rounded-lg">
+                                 <div class="flex items-center mb-2">
+                                     <span class="text-green-600 font-bold mr-2">Role-Based</span>
+                                 </div>
+                                <div class="code-block text-gray-300">
+                                    <pre>You are a senior quantum physicist.
+Explain quantum computing to a 
+software engineer learning the field.
+Use analogies from classical computing.</pre>
+                                </div>
+                                <p class="text-sm text-green-700 mt-2">Targeted, relevant explanation</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Best Practices Summary -->
+                    <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border-2 border-purple-200">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Key Best Practices for Llama 4</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                 <span class="text-green-500 mr-3 text-xl">•</span>
+                                 <span><strong>Be Specific:</strong> Define output format, length, and style requirements upfront</span>
+                             </li>
+                             <li class="flex items-start">
+                                 <span class="text-green-500 mr-3 text-xl">•</span>
+                                 <span><strong>Use Delimiters:</strong> Separate instructions, examples, and input with clear markers (###, """, ---)</span>
+                             </li>
+                             <li class="flex items-start">
+                                 <span class="text-green-500 mr-3 text-xl">•</span>
+                                 <span><strong>Iterate Context:</strong> For multi-turn, maintain conversation context efficiently</span>
+                             </li>
+                             <li class="flex items-start">
+                                 <span class="text-green-500 mr-3 text-xl">•</span>
+                                 <span><strong>Test Temperature:</strong> Use 0.7-0.9 for creative tasks, 0.1-0.3 for factual/analytical tasks</span>
+                             </li>
+                             <li class="flex items-start">
+                                 <span class="text-green-500 mr-3 text-xl">•</span>
+                                 <span><strong>Leverage System Messages:</strong> Set behavior and constraints at the system level for consistency</span>
+                             </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Models Tab -->
+            <div id="content-models" class="tab-content hidden">
+                <h2 class="text-3xl font-bold mb-6 gradient-text">Llama 4 Model Comparison</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Scout Card -->
+                     <div class="border-2 border-blue-300 rounded-xl p-6 bg-blue-50">
+                         <div class="text-center mb-4">
+                             <h3 class="text-2xl font-bold text-blue-900">Llama 4 Scout</h3>
+                            <p class="text-blue-700">Fast & Efficient</p>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-white rounded-lg p-3">
+                                <div class="text-sm text-gray-600">Parameters</div>
+                                <div class="text-xl font-bold text-blue-900">17B</div>
+                            </div>
+                            <div class="bg-white rounded-lg p-3">
+                                <div class="text-sm text-gray-600">Context Window</div>
+                                <div class="text-xl font-bold text-blue-900">128K tokens</div>
+                            </div>
+                            <div class="bg-white rounded-lg p-3">
+                                <div class="text-sm text-gray-600">Best For</div>
+                                <div class="text-sm font-semibold text-blue-900">Real-time apps, chatbots, code assistance, edge deployment</div>
+                            </div>
+                            <div class="bg-white rounded-lg p-3">
+                                <div class="text-sm text-gray-600">Latency</div>
+                                <div class="text-xl font-bold text-green-600">~50ms</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Maverick Card -->
+                     <div class="border-2 border-blue-300 rounded-xl p-6 bg-blue-50">
+                         <div class="text-center mb-4">
+                             <h3 class="text-2xl font-bold text-blue-900">Llama 4 Maverick</h3>
+                             <p class="text-blue-700">Maximum Intelligence</p>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="bg-white rounded-lg p-3">
+                                <div class="text-sm text-gray-600">Parameters</div>
+                                <div class="text-xl font-bold text-blue-900">400B (MoE)</div>
+                            </div>
+                            <div class="bg-white rounded-lg p-3">
+                                <div class="text-sm text-gray-600">Context Window</div>
+                                <div class="text-xl font-bold text-blue-900">128K tokens</div>
+                            </div>
+                            <div class="bg-white rounded-lg p-3">
+                                <div class="text-sm text-gray-600">Best For</div>
+                                <div class="text-sm font-semibold text-blue-900">Complex reasoning, research, multimodal analysis, expert systems</div>
+                            </div>
+                            <div class="bg-white rounded-lg p-3">
+                                <div class="text-sm text-gray-600">Latency</div>
+                                <div class="text-xl font-bold text-yellow-600">~200ms</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Decision Matrix -->
+                <div class="border-2 border-gray-200 rounded-xl p-6 bg-gray-50">
+                    <h3 class="text-2xl font-bold mb-4 text-gray-800">Model Selection Decision Tree</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-white rounded-lg p-4 border-l-4 border-blue-500">
+                            <div class="font-bold text-gray-800 mb-2">Choose Scout 17B when:</div>
+                            <ul class="list-disc list-inside text-gray-700 space-y-1">
+                                <li>Response time &lt; 100ms is critical (chatbots, real-time assistance)</li>
+                                <li>Deploying to edge devices or mobile</li>
+                                <li>Task is well-defined and doesn't require deep reasoning</li>
+                                <li>Cost optimization is priority (4x cheaper than Maverick)</li>
+                                <li>Use cases: Customer support, code completion, content moderation</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white rounded-lg p-4 border-l-4 border-blue-500">
+                            <div class="font-bold text-gray-800 mb-2">Choose Maverick 400B when:</div>
+                            <ul class="list-disc list-inside text-gray-700 space-y-1">
+                                <li>Complex multi-step reasoning required</li>
+                                <li>Handling multimodal inputs (text + images)</li>
+                                <li>Need highest accuracy for critical decisions</li>
+                                <li>Research, analysis, or expert-level domain knowledge</li>
+                                <li>Use cases: Medical diagnosis assistance, legal document analysis, scientific research</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border-l-4 border-yellow-500">
+                            <div class="font-bold text-gray-800 mb-2">Hybrid Approach:</div>
+                            <p class="text-gray-700">Use Scout for initial triage/classification, then route complex queries to Maverick. This optimizes both cost and performance.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Comparison Chart -->
+                <div class="mt-8 border-2 border-gray-200 rounded-xl p-6">
+                    <h3 class="text-2xl font-bold mb-4 text-gray-800">Performance Comparison</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="p-3 text-left">Metric</th>
+                                    <th class="p-3 text-center">Scout 17B</th>
+                                    <th class="p-3 text-center">Maverick 400B</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                <tr class="border-t">
+                                    <td class="p-3 font-semibold">Code Generation (HumanEval)</td>
+                                    <td class="p-3 text-center">72%</td>
+                                    <td class="p-3 text-center text-green-600 font-bold">89%</td>
+                                </tr>
+                                <tr class="border-t bg-gray-50">
+                                    <td class="p-3 font-semibold">Math Reasoning (MATH)</td>
+                                    <td class="p-3 text-center">68%</td>
+                                    <td class="p-3 text-center text-green-600 font-bold">85%</td>
+                                </tr>
+                                <tr class="border-t">
+                                    <td class="p-3 font-semibold">Multilingual (MMLU)</td>
+                                    <td class="p-3 text-center">79%</td>
+                                    <td class="p-3 text-center text-green-600 font-bold">91%</td>
+                                </tr>
+                                <tr class="border-t bg-gray-50">
+                                    <td class="p-3 font-semibold">Vision Tasks (Multimodal)</td>
+                                    <td class="p-3 text-center">75%</td>
+                                    <td class="p-3 text-center text-green-600 font-bold">88%</td>
+                                </tr>
+                                <tr class="border-t">
+                                    <td class="p-3 font-semibold">Tokens per Second</td>
+                                    <td class="p-3 text-center text-green-600 font-bold">~120</td>
+                                    <td class="p-3 text-center">~40</td>
+                                </tr>
+                                <tr class="border-t bg-gray-50">
+                                    <td class="p-3 font-semibold">Cost per 1M tokens</td>
+                                    <td class="p-3 text-center text-green-600 font-bold">$0.80</td>
+                                    <td class="p-3 text-center">$3.20</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multimodal Tab -->
+            <div id="content-multimodal" class="tab-content hidden">
+                <h2 class="text-3xl font-bold mb-6 gradient-text">Multimodal Prompt Patterns</h2>
+                <p class="text-gray-600 mb-6">Llama 4 features native multimodal capabilities with early fusion architecture, processing text and images together from the start.</p>
+
+                <div class="space-y-6">
+                    <!-- Pattern 1: Image + Text Analysis -->
+                     <div class="border-2 border-gray-200 rounded-xl p-6">
+                         <div class="flex items-center mb-4">
+                             <h3 class="text-2xl font-bold text-gray-800">Image + Text Analysis</h3>
+                         </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                            <div class="font-semibold text-gray-700 mb-2">Pattern Structure:</div>
+                            <div class="code-block text-gray-300">
+                                <pre>System: You are an expert image analyst.
+
+User: [IMAGE: product_photo.jpg]
+
+Analyze this product image and provide:
+1. Primary objects and their positions
+2. Quality assessment (lighting, focus, composition)
+3. Potential improvements
+4. Recommended use case
+
+Format output as JSON.</pre>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <div class="font-semibold text-blue-900 mb-2">Use Cases:</div>
+                            <ul class="list-disc list-inside text-gray-700 space-y-1">
+                                <li>E-commerce product quality control</li>
+                                <li>Medical imaging preliminary screening</li>
+                                <li>Content moderation with context</li>
+                                <li>Document understanding (invoices, receipts)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Pattern 2: Visual Question Answering -->
+                     <div class="border-2 border-gray-200 rounded-xl p-6">
+                         <div class="flex items-center mb-4">
+                             <h3 class="text-2xl font-bold text-gray-800">Visual Question Answering (VQA)</h3>
+                         </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                            <div class="font-semibold text-gray-700 mb-2">Pattern Structure:</div>
+                            <div class="code-block text-gray-300">
+                                <pre>System: Answer questions about images accurately.
+
+User: [IMAGE: warehouse_floor.jpg]
+
+Questions:
+1. How many pallets are visible?
+2. Are safety protocols being followed?
+3. What's the estimated occupancy %?
+4. Any immediate concerns?
+
+Be specific and cite visual evidence.</pre>
+                            </div>
+                        </div>
+
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <div class="font-semibold text-green-900 mb-2">Best Practices:</div>
+                            <ul class="list-disc list-inside text-gray-700 space-y-1">
+                                <li>Ask specific, measurable questions</li>
+                                <li>Request evidence citation from the image</li>
+                                <li>Use for inspection, compliance, inventory tasks</li>
+                                <li>Combine with CoT for complex reasoning</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Pattern 3: Multi-Image Comparison -->
+                     <div class="border-2 border-gray-200 rounded-xl p-6">
+                         <div class="flex items-center mb-4">
+                             <h3 class="text-2xl font-bold text-gray-800">Multi-Image Comparison</h3>
+                         </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                            <div class="font-semibold text-gray-700 mb-2">Pattern Structure:</div>
+                            <div class="code-block text-gray-300">
+                                <pre>System: Compare images systematically.
+
+User: 
+[IMAGE_1: before.jpg]
+[IMAGE_2: after.jpg]
+
+Compare these images and identify:
+1. Key differences
+2. Changes in quality/state
+3. Actionable insights
+4. Recommendation
+
+Structure: Before | After | Analysis</pre>
+                            </div>
+                        </div>
+
+                        <div class="bg-purple-50 rounded-lg p-4">
+                            <div class="font-semibold text-purple-900 mb-2">Applications:</div>
+                            <ul class="list-disc list-inside text-gray-700 space-y-1">
+                                <li>Quality control before/after manufacturing</li>
+                                <li>Medical progress tracking</li>
+                                <li>A/B testing visual designs</li>
+                                <li>Damage assessment for insurance</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Multimodal Tips -->
+                     <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-6 border-2 border-blue-200">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Multimodal Optimization Tips</h3>
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div class="bg-white rounded-lg p-4">
+                                 <div class="font-bold text-blue-600 mb-2">DO</div>
+                                 <ul class="text-sm text-gray-700 space-y-1">
+                                     <li>- Provide clear context for each image</li>
+                                     <li>- Specify expected output format</li>
+                                     <li>- Use Maverick for complex visual reasoning</li>
+                                     <li>- Combine images with structured questions</li>
+                                 </ul>
+                             </div>
+                             <div class="bg-white rounded-lg p-4">
+                                 <div class="font-bold text-red-600 mb-2">DON'T</div>
+                                <ul class="text-sm text-gray-700 space-y-1">
+                                    <li>- Assume model sees everything humans see</li>
+                                    <li>- Use low-resolution images (&lt;512px)</li>
+                                    <li>- Mix unrelated images without context</li>
+                                    <li>- Expect perfect OCR on handwriting</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Architecture Tab -->
+            <div id="content-architecture" class="tab-content hidden">
+                <h2 class="text-3xl font-bold mb-6 gradient-text">Reference Architectures</h2>
+                
+                <!-- Cloud Deployment -->
+                <div class="mb-8 border-2 border-gray-200 rounded-xl p-6">
+                    <h3 class="text-2xl font-bold mb-4 text-gray-800">Cloud Deployment Patterns</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div class="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-5 border-2 border-orange-200">
+                             <h4 class="font-bold text-lg mb-2">AWS</h4>
+                             <ul class="text-sm text-gray-700 space-y-1">
+                                 <li>- SageMaker for inference</li>
+                                 <li>- EC2 P4/P5 instances</li>
+                                 <li>- S3 for model storage</li>
+                                 <li>- CloudWatch monitoring</li>
+                             </ul>
+                         </div>
+
+                         <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-5 border-2 border-blue-200">
+                             <h4 class="font-bold text-lg mb-2">Azure</h4>
+                             <ul class="text-sm text-gray-700 space-y-1">
+                                 <li>- Azure ML endpoints</li>
+                                 <li>- NC/ND series VMs</li>
+                                 <li>- Blob storage</li>
+                                 <li>- Application Insights</li>
+                             </ul>
+                         </div>
+
+                         <div class="bg-gradient-to-br from-green-50 to-teal-50 rounded-xl p-5 border-2 border-green-200">
+                             <h4 class="font-bold text-lg mb-2">GCP</h4>
+                            <ul class="text-sm text-gray-700 space-y-1">
+                                <li>- Vertex AI platform</li>
+                                <li>- A2/A3 machine types</li>
+                                <li>- Cloud Storage</li>
+                                <li>- Cloud Monitoring</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="font-semibold text-gray-700 mb-2">Recommended Stack:</div>
+                        <div class="code-block text-gray-300">
+                            <pre># Docker + Kubernetes Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llama4-scout-inference
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+      - name: llama4
+        image: meta/llama4-scout:latest
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+          requests:
+            memory: "32Gi"
+            cpu: "8"</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fine-tuning Strategy -->
+                <div class="mb-8 border-2 border-gray-200 rounded-xl p-6">
+                    <h3 class="text-2xl font-bold mb-4 text-gray-800">Fine-Tuning Decision Tree</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
+                            <div class="font-bold text-blue-900 mb-2">Full Fine-Tuning</div>
+                            <div class="text-sm text-gray-700 mb-2">Update all model parameters. Best for:</div>
+                            <ul class="list-disc list-inside text-sm text-gray-700">
+                                <li>Domain-specific language (medical, legal)</li>
+                                <li>Large labeled datasets (&gt;10K examples)</li>
+                                <li>When prompt engineering fails</li>
+                            </ul>
+                            <div class="mt-2 text-xs text-gray-600">Cost: High | Time: Days | GPU: 8x A100</div>
+                        </div>
+
+                        <div class="bg-green-50 rounded-lg p-4 border-l-4 border-green-500">
+                            <div class="font-bold text-green-900 mb-2">LoRA (Low-Rank Adaptation)</div>
+                            <div class="text-sm text-gray-700 mb-2">Efficient parameter updates. Best for:</div>
+                            <ul class="list-disc list-inside text-sm text-gray-700">
+                                <li>Task-specific adaptations</li>
+                                <li>Moderate datasets (1K-10K examples)</li>
+                                <li>Quick iteration cycles</li>
+                            </ul>
+                            <div class="mt-2 text-xs text-gray-600">Cost: Medium | Time: Hours | GPU: 2x A100</div>
+                        </div>
+
+                        <div class="bg-purple-50 rounded-lg p-4 border-l-4 border-purple-500">
+                            <div class="font-bold text-purple-900 mb-2">Prompt Engineering + RAG</div>
+                            <div class="text-sm text-gray-700 mb-2">No model updates. Best for:</div>
+                            <ul class="list-disc list-inside text-sm text-gray-700">
+                                <li>Rapidly changing information</li>
+                                <li>Company-specific knowledge bases</li>
+                                <li>Limited labeled data (&lt;1K examples)</li>
+                            </ul>
+                            <div class="mt-2 text-xs text-gray-600">Cost: Low | Time: Minutes | GPU: Optional</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Production Checklist -->
+                <div class="border-2 border-gray-200 rounded-xl p-6">
+                    <h3 class="text-2xl font-bold mb-4 text-gray-800">Production Deployment Checklist</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-lg mb-3 text-gray-800">Performance</h4>
+                            <ul class="space-y-2">
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Load testing with expected QPS</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Latency &lt; SLA requirements</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Auto-scaling configured</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Caching strategy implemented</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="font-bold text-lg mb-3 text-gray-800">Reliability</h4>
+                            <ul class="space-y-2">
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Health checks enabled</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Fallback mechanisms ready</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Error handling + retry logic</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Monitoring & alerts setup</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="font-bold text-lg mb-3 text-gray-800">Security</h4>
+                            <ul class="space-y-2">
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">API authentication enabled</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Rate limiting configured</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Input sanitization in place</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">PII detection & filtering</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="font-bold text-lg mb-3 text-gray-800">Observability</h4>
+                            <ul class="space-y-2">
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Request/response logging</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Token usage tracking</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Quality metrics dashboard</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <input type="checkbox" class="mt-1 mr-3">
+                                    <span class="text-sm">Cost monitoring enabled</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-white rounded-2xl shadow-lg p-6 mt-8 text-center">
+            <div class="mb-4">
+                <h3 class="text-xl font-bold gradient-text mb-2">Ready to Accelerate Llama Adoption?</h3>
+                <p class="text-gray-600">Let's discuss how I can help Meta's partners leverage Llama effectively</p>
+            </div>
+            <div class="flex justify-center gap-4 flex-wrap">
+                <button onclick="downloadProject()" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105">
+                    Download This Project
+                </button>
+                <button onclick="window.open('https://linkedin.com/in/yourprofile','_blank')" class="bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105">
+                    Connect on LinkedIn
+                </button>
+                <button onclick="window.open('https://github.com/yourprofile','_blank')" class="bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105">
+                    View GitHub
+                </button>
+            </div>
+            <div class="mt-6 text-sm text-gray-500">
+                <p>Created as a showcase for Meta AI Partner Engineer role | Mumbai, India | 2026</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Template Data
+        const templates = {
+            coding: {
+                title: "Code Generation Template",
+                model: "Scout 17B",
+                description: "Production-ready code with error handling and documentation",
+                prompt: `System: You are an expert software engineer specializing in clean, production-ready code.
+
+User: Create a Python function that [TASK DESCRIPTION]
+
+Requirements:
+1. Include comprehensive error handling
+2. Add detailed docstrings
+3. Follow PEP 8 style guidelines
+4. Include type hints
+5. Add usage examples
+
+Output format:
+- Function implementation
+- Unit tests
+- Usage examples`,
+                useCases: ["API integrations", "Data processing pipelines", "Automation scripts", "Algorithm implementation"]
+            },
+            analysis: {
+                title: "Data Analysis Template",
+                model: "Maverick 400B",
+                description: "Deep analytical reasoning with structured outputs",
+                prompt: `System: You are a senior data analyst with expertise in extracting actionable insights.
+
+User: Analyze this dataset/scenario:
+[DATA/CONTEXT]
+
+Provide analysis structured as:
+1. Executive Summary (3-4 sentences)
+2. Key Findings (bullet points with supporting data)
+3. Trends & Patterns
+4. Actionable Recommendations
+5. Risk Assessment
+6. Next Steps
+
+Use data-driven reasoning and cite specific metrics.`,
+                useCases: ["Business intelligence", "Market research", "Performance analysis", "Risk assessment"]
+            },
+            customercare: {
+                title: "Customer Care Agent Template",
+                model: "Scout 17B",
+                description: "Empathetic, context-aware customer support",
+                prompt: `System: You are a professional customer support agent. Be empathetic, solution-focused, and clear.
+
+Context:
+- Customer: [CUSTOMER_NAME]
+- Issue Type: [ISSUE_CATEGORY]
+- Previous Interactions: [HISTORY]
+
+User: [CUSTOMER MESSAGE]
+
+Response Structure:
+1. Acknowledge the issue with empathy
+2. Provide clear solution steps
+3. Offer alternatives if applicable
+4. Set expectations for resolution time
+5. Ask if they need additional help
+
+Tone: Professional, warm, patient`,
+                useCases: ["Technical support", "Order assistance", "Complaint resolution", "Product guidance"]
+            },
+            rag: {
+                title: "RAG System Template",
+                model: "Both Models",
+                description: "Retrieval-augmented generation with citations",
+                prompt: `System: You are an information retrieval assistant. Always cite sources and acknowledge limitations.
+
+Retrieved Context:
+[DOCUMENT_1: Source Title]
+[Relevant excerpt...]
+
+[DOCUMENT_2: Source Title]
+[Relevant excerpt...]
+
+User Query: [QUESTION]
+
+Instructions:
+1. Synthesize information from retrieved documents
+2. Cite sources using [Doc X] notation
+3. If information is insufficient, say so
+4. Distinguish between facts and inferences
+5. Provide confidence level for each claim
+
+Format: Clear paragraphs with inline citations`,
+                useCases: ["Knowledge base Q&A", "Research assistance", "Document search", "Policy lookup"]
+            }
+        };
+
+        // Tab Switching
+        function showTab(tabName) {
+            // Hide all content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active state from all tabs
+            document.querySelectorAll('[id^="tab-"]').forEach(tab => {
+                tab.classList.remove('tab-active');
+                tab.classList.add('hover:bg-gray-100');
+            });
+            
+            // Show selected content
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            
+            // Add active state to selected tab
+            const activeTab = document.getElementById(`tab-${tabName}`);
+            activeTab.classList.add('tab-active');
+            activeTab.classList.remove('hover:bg-gray-100');
+        }
+
+        // Load Template
+        function loadTemplate(templateKey) {
+            const template = templates[templateKey];
+            const displayDiv = document.getElementById('templateDisplay');
+            
+            displayDiv.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-2xl font-bold text-gray-800">${template.title}</h3>
+                        <span class="badge ${template.model.includes('Scout') ? 'badge-info' : template.model.includes('Maverick') ? 'badge-success' : 'badge-warning'}">${template.model}</span>
+                    </div>
+                    
+                    <p class="text-gray-600">${template.description}</p>
+                    
+                    <div class="bg-gray-900 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-gray-400 text-sm font-semibold">Prompt Template</span>
+                            <button onclick="copyPrompt('${templateKey}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-all duration-200">
+                                Copy
+                            </button>
+                        </div>
+                        <pre class="text-gray-300 text-sm overflow-x-auto">${template.prompt}</pre>
+                    </div>
+                    
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <div class="font-semibold text-blue-900 mb-2">Common Use Cases:</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            ${template.useCases.map(useCase => `
+                                <div class="bg-white rounded px-3 py-2 text-sm text-gray-700">
+                                    • ${useCase}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="customizeTemplate('${templateKey}')" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105">
+                            Customize Template
+                        </button>
+                        <button onclick="exportTemplate('${templateKey}')" class="flex-1 bg-blue-500 text-white px-4 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105">
+                            Export as JSON
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Copy Prompt
+        function copyPrompt(templateKey) {
+            const template = templates[templateKey];
+            navigator.clipboard.writeText(template.prompt).then(() => {
+                alert('Prompt copied to clipboard!');
+            });
+        }
+
+        // Customize Template
+        function customizeTemplate(templateKey) {
+            const template = templates[templateKey];
+            const customPrompt = prompt('Edit your prompt template:', template.prompt);
+            if (customPrompt) {
+                alert('Template customized! In a full app, this would save to local storage.');
+            }
+        }
+
+        // Export Template
+        function exportTemplate(templateKey) {
+            const template = templates[templateKey];
+            const dataStr = JSON.stringify(template, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `llama-${templateKey}-template.json`;
+            link.click();
+        }
+
+        // Download Project
+        function downloadProject() {
+            alert('In a deployed version, this would download the full HTML file.\n\nFor now, simply save this page (Ctrl+S or Cmd+S) to your computer!');
+        }
+
+        // Initialize
+        window.onload = function() {
+            showTab('templates');
+        };
+    </script>
+</body>
+</html>
