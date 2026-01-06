@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netskope AI-Powered DLP Analyzer | Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #1a2942 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2563EB;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #2563EB, #1e40af);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .subtitle {
+            color: #94A3B8;
+            font-size: 16px;
+            margin-top: 8px;
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(37, 99, 235, 0.15);
+        }
+
+        .card-title {
+            font-size: 20px;
+            color: #E2E8F0;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon {
+            font-size: 24px;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #2563EB, #1e40af);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Input Section */
+        .input-section {
+            grid-column: 1 / -1;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(37, 99, 235, 0.3);
+            border-radius: 12px;
+            color: #fff;
+            padding: 20px;
+            font-size: 15px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #2563EB;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        textarea::placeholder {
+            color: #64748B;
+        }
+
+        /* File Upload */
+        .file-upload {
+            margin-top: 15px;
+            padding: 20px;
+            border: 2px dashed rgba(37, 99, 235, 0.3);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #2563EB;
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            color: #2563EB;
+            font-size: 14px;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563EB, #1e40af);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #E2E8F0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Loading State */
+        .loading {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            color: #2563EB;
+            margin-top: 20px;
+        }
+
+        .loading.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(37, 99, 235, 0.3);
+            border-top-color: #2563EB;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results */
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .detection-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 4px solid #dc2626;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .detection-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateX(5px);
+        }
+
+        .detection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .detection-type {
+            font-size: 16px;
+            font-weight: 600;
+            color: #FECACA;
+        }
+
+        .confidence-badge {
+            background: rgba(220, 38, 38, 0.2);
+            color: #FECACA;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .detection-text {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            color: #CBD5E1;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .detection-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .detail-item {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #94A3B8;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            color: #E2E8F0;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #94A3B8;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* Risk Score */
+        .risk-score {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .risk-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        .risk-high {
+            background: rgba(220, 38, 38, 0.2);
+            border: 2px solid #dc2626;
+            color: #FECACA;
+        }
+
+        .risk-medium {
+            background: rgba(245, 158, 11, 0.2);
+            border: 2px solid #f59e0b;
+            color: #FCD34D;
+        }
+
+        .risk-low {
+            background: rgba(34, 197, 94, 0.2);
+            border: 2px solid #22c55e;
+            color: #86EFAC;
+        }
+
+        .risk-label {
+            font-size: 14px;
+            color: #94A3B8;
+            font-weight: 600;
+        }
+
+        .risk-level {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        /* Policy Item */
+        .policy-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 4px solid #2563EB;
+            padding: 18px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .policy-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #E2E8F0;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .policy-title .icon {
+            width: 28px;
+            height: 28px;
+            background: rgba(37, 99, 235, 0.2);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #2563EB;
+        }
+
+        .policy-action {
+            background: rgba(37, 99, 235, 0.15);
+            color: #BFDBFE;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .policy-description {
+            color: #CBD5E1;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: #94A3B8;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+        }
+
+        .tab-btn.active {
+            color: #2563EB;
+            border-bottom-color: #2563EB;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .detection-details {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">N</div>
+                Netskope DLP Assistant
+            </div>
+            <p class="subtitle">AI-Powered Data Loss Prevention Analysis & Policy Recommendations</p>
+        </div>
+
+        <!-- Input Section -->
+        <div class="main-grid">
+            <div class="card input-section">
+                <div class="card-title">
+                    <div class="card-icon">T</div>
+                    Input Content for Analysis
+                </div>
+                <textarea id="contentInput" placeholder="Paste your text or document here. The AI will scan for sensitive data like credit cards, SSN, API keys, passwords, and more..."></textarea>
+                
+                <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                    <div>Upload File (TXT, DOC, CSV)</div>
+                    <div style="font-size: 12px; color: #94A3B8; margin-top: 5px;">Click to upload or drag and drop</div>
+                </div>
+                <input type="file" id="fileInput" accept=".txt,.doc,.docx,.csv,.pdf">
+                <div id="fileInfo" class="file-info"></div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="analyzeBtn">Scan Content</button>
+                    <button class="btn btn-secondary" id="clearBtn">Clear</button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <span>Analyzing content with ML classification...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="results">
+            <!-- Stats -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalDetections">0</div>
+                    <div class="stat-label">Detections Found</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="confidenceAvg">0%</div>
+                    <div class="stat-label">Avg Confidence</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="riskScore">0</div>
+                    <div class="stat-label">Risk Score</div>
+                </div>
+                <div class="stat-card">
+                    <div style="display: flex; align-items: center; justify-content: center; height: 50px;">
+                        <div>
+                            <div id="riskLevel" class="risk-level" style="font-size: 14px;">ANALYZING</div>
+                        </div>
+                    </div>
+                    <div class="stat-label">Risk Level</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="main-grid">
+                <div class="card">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="detections">Detections</button>
+                        <button class="tab-btn" data-tab="policies">Policy Recommendations</button>
+                        <button class="tab-btn" data-tab="compliance">Compliance</button>
+                    </div>
+
+                    <!-- Detections Tab -->
+                    <div id="detections" class="tab-content active">
+                        <div class="card-title">
+                            <div class="card-icon">S</div>
+                            Sensitive Data Detected
+                        </div>
+                        <div id="detectionsContainer"></div>
+                    </div>
+
+                    <!-- Policies Tab -->
+                    <div id="policies" class="tab-content">
+                        <div class="card-title">
+                            <div class="card-icon">P</div>
+                            DLP Policy Recommendations
+                        </div>
+                        <div id="policiesContainer"></div>
+                    </div>
+
+                    <!-- Compliance Tab -->
+                    <div id="compliance" class="tab-content">
+                        <div class="card-title">
+                            <div class="card-icon">C</div>
+                            Compliance Framework
+                        </div>
+                        <div id="complianceContainer"></div>
+                    </div>
+                </div>
+
+                <!-- Right Side - DLP Capabilities -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="card-icon">K</div>
+                        Netskope Capabilities
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div>
+                            <h4 style="color: #2563EB; margin-bottom: 8px; font-size: 14px;">Real-Time Classification</h4>
+                            <p style="color: #CBD5E1; font-size: 13px; line-height: 1.5;">ML-powered detection identifies PII, PHI, PCI-DSS data, credentials, and custom patterns instantly.</p>
+                        </div>
+
+                        <div>
+                            <h4 style="color: #2563EB; margin-bottom: 8px; font-size: 14px;">Behavioral Analytics</h4>
+                            <p style="color: #CBD5E1; font-size: 13px; line-height: 1.5;">Detect anomalous data access patterns and prevent insider threats before they occur.</p>
+                        </div>
+
+                        <div>
+                            <h4 style="color: #2563EB; margin-bottom: 8px; font-size: 14px;">Granular Policy Control</h4>
+                            <p style="color: #CBD5E1; font-size: 13px; line-height: 1.5;">Define block, alert, quarantine, or encrypt actions based on data type, user, and context.</p>
+                        </div>
+
+                        <div>
+                            <h4 style="color: #2563EB; margin-bottom: 8px; font-size: 14px;">Cloud & Web Gateway</h4>
+                            <p style="color: #CBD5E1; font-size: 13px; line-height: 1.5;">Monitor all cloud apps and web traffic. Prevent data exfiltration across SaaS platforms.</p>
+                        </div>
+
+                        <div>
+                            <h4 style="color: #2563EB; margin-bottom: 8px; font-size: 14px;">Compliance Reporting</h4>
+                            <p style="color: #CBD5E1; font-size: 13px; line-height: 1.5;">Audit trails for HIPAA, GDPR, PCI-DSS. Automated compliance reports and dashboards.</p>
+                        </div>
+
+                        <div>
+                            <h4 style="color: #2563EB; margin-bottom: 8px; font-size: 14px;">Advanced Encryption</h4>
+                            <p style="color: #CBD5E1; font-size: 13px; line-height: 1.5;">Encrypt sensitive data in transit and at rest. Manage keys with BYOK support.</p>
+                        </div>
+
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                            <h4 style="color: #86EFAC; margin-bottom: 8px; font-size: 14px;">Integration Ready</h4>
+                            <p style="color: #CBD5E1; font-size: 13px; line-height: 1.5;">Works seamlessly with Microsoft 365, Google Workspace, Salesforce, ServiceNow, and more.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const contentInput = document.getElementById('contentInput');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+
+        // DLP Pattern Detection Rules
+        const dlpPatterns = [
+            {
+                name: 'Credit Card Number',
+                regex: /\b(?:\d{4}[-\s]?){3}\d{4}\b|\b\d{16}\b/g,
+                type: 'PCI',
+                compliance: 'PCI-DSS',
+                severity: 'Critical',
+                template: 'Credit Card Detection'
+            },
+            {
+                name: 'Social Security Number',
+                regex: /\b(?:\d{3}-\d{2}-\d{4}|\d{9})\b/g,
+                type: 'PII',
+                compliance: 'GDPR, State Privacy Laws',
+                severity: 'Critical',
+                template: 'SSN Detection'
+            },
+            {
+                name: 'Email Address',
+                regex: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
+                type: 'PII',
+                compliance: 'GDPR, CCPA',
+                severity: 'Medium',
+                template: 'Email Address'
+            },
+            {
+                name: 'US Phone Number',
+                regex: /\b(?:\+1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b/g,
+                type: 'PII',
+                compliance: 'GDPR, Privacy Laws',
+                severity: 'Medium',
+                template: 'US Phone Number'
+            },
+            {
+                name: 'API Key / Secret',
+                regex: /(?:api[_-]?key|secret[_-]?key|access[_-]?token)['\s:=]+['"]?[a-zA-Z0-9_\-]{20,}['"]?/gi,
+                type: 'Credentials',
+                compliance: 'Security Best Practices',
+                severity: 'Critical',
+                template: 'API Credentials'
+            },
+            {
+                name: 'AWS Secret Key',
+                regex: /aws[_-]?secret[_-]?access[_-]?key['\s:=]+['"]?[a-zA-Z0-9/+=]{40}['"]?/gi,
+                type: 'Credentials',
+                compliance: 'Cloud Security',
+                severity: 'Critical',
+                template: 'AWS Credentials'
+            },
+            {
+                name: 'Password in Code',
+                regex: /(?:password|passwd|pwd)['\s:=]+['"]?[^\s'"]{8,}['"]?/gi,
+                type: 'Credentials',
+                compliance: 'Security Best Practices',
+                severity: 'High',
+                template: 'Hardcoded Passwords'
+            },
+            {
+                name: 'Medical Record Number (MRN)',
+                regex: /\b(?:MRN|mrn|medical\s*record)[:\s#]+\d{5,10}\b/gi,
+                type: 'PHI',
+                compliance: 'HIPAA',
+                severity: 'Critical',
+                template: 'Medical Record Number'
+            },
+            {
+                name: 'Date of Birth',
+                regex: /\b(?:DOB|dob|date\s*of\s*birth)[:\s]+\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b/gi,
+                type: 'PII/PHI',
+                compliance: 'HIPAA, GDPR',
+                severity: 'High',
+                template: 'Date of Birth'
+            },
+            {
+                name: 'Database Connection String',
+                regex: /(?:mongodb|mysql|postgresql|jdbc):\/\/[^\s'"]+/gi,
+                type: 'Credentials',
+                compliance: 'Security Best Practices',
+                severity: 'Critical',
+                template: 'Database Credentials'
+            },
+            {
+                name: 'IP Address',
+                regex: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g,
+                type: 'Network Info',
+                compliance: 'Internal Security',
+                severity: 'Low',
+                template: 'IP Address'
+            },
+            {
+                name: 'CVV/CVC Code',
+                regex: /\b(?:CVV|CVC)[:\s]*\d{3,4}\b/gi,
+                type: 'PCI',
+                compliance: 'PCI-DSS',
+                severity: 'Critical',
+                template: 'Card Verification Code'
+            },
+            {
+                name: 'Bank Account Number',
+                regex: /(?:account|acct)[:\s]*\b\d{8,17}\b/gi,
+                type: 'PII',
+                compliance: 'GDPR, CCPA',
+                severity: 'High',
+                template: 'Bank Account Number'
+            },
+            {
+                name: 'License Plate',
+                regex: /\b[A-Z]{2,3}\s?\d{3}\s?[A-Z]{2,3}\b/g,
+                type: 'PII',
+                compliance: 'Privacy Laws',
+                severity: 'Medium',
+                template: 'License Plate'
+            },
+            {
+                name: 'Passport Number',
+                regex: /(?:passport)[:\s]*[A-Z0-9]{6,9}\b/gi,
+                type: 'PII',
+                compliance: 'GDPR, CCPA',
+                severity: 'High',
+                template: 'Passport Number'
+            }
+        ];
+
+        // Netskope Policy Templates
+        const policyTemplates = {
+            'PII': {
+                action: 'Block & Alert',
+                description: 'Prevent PII data exfiltration to unsanctioned cloud services. Use DLP fingerprinting for precision.'
+            },
+            'PCI': {
+                action: 'Block & Quarantine',
+                description: 'Enforce PCI-DSS compliance. Block credit card data in transit with real-time inspection.'
+            },
+            'PHI': {
+                action: 'Encrypt & Log',
+                description: 'HIPAA-compliant policy. Encrypt PHI data and maintain audit trail for compliance reporting.'
+            },
+            'Credentials': {
+                action: 'Block & Notify Security Team',
+                description: 'Critical threat protection. Immediately block credential exposure and trigger incident response.'
+            },
+            'Network Info': {
+                action: 'Alert & Monitor',
+                description: 'Monitor internal network information disclosure. Create baseline for anomaly detection.'
+            },
+            'PII/PHI': {
+                action: 'Encrypt & Alert',
+                description: 'Combined PII and PHI protection. Encrypt sensitive data and alert compliance teams.'
+            }
+        };
+
+        // Compliance Frameworks
+        const complianceFrameworks = {
+            'HIPAA': {
+                description: 'Health Insurance Portability and Accountability Act',
+                requirements: ['Protect PHI data', 'Audit logging', 'Access controls', 'Data encryption']
+            },
+            'GDPR': {
+                description: 'General Data Protection Regulation (EU)',
+                requirements: ['Data minimization', 'Consent management', 'Right to deletion', 'Data breach notification']
+            },
+            'PCI-DSS': {
+                description: 'Payment Card Industry Data Security Standard',
+                requirements: ['Secure networks', 'Protect cardholder data', 'Vulnerability management', 'Access controls']
+            },
+            'CCPA': {
+                description: 'California Consumer Privacy Act',
+                requirements: ['Consumer rights', 'Data deletion', 'Opt-out mechanisms', 'Privacy notices']
+            }
+        };
+
+        // Tab Switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.getAttribute('data-tab');
+                
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+            });
+        });
+
+        // File Upload Handler
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                fileInfo.textContent = `Loaded: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    contentInput.value = event.target.result;
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Clear Handler
+        clearBtn.addEventListener('click', () => {
+            contentInput.value = '';
+            fileInput.value = '';
+            fileInfo.textContent = '';
+            results.classList.remove('active');
+        });
+
+        // Analyze Handler
+        analyzeBtn.addEventListener('click', async () => {
+            const content = contentInput.value.trim();
+            
+            if (!content) {
+                alert('Please enter content or upload a file to analyze.');
+                return;
+            }
+
+            // Show loading
+            analyzeBtn.disabled = true;
+            loading.classList.add('active');
+            results.classList.remove('active');
+
+            // Simulate AI processing delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Perform DLP Analysis
+            const detections = [];
+            let totalConfidence = 0;
+
+            dlpPatterns.forEach(pattern => {
+                const matches = content.match(pattern.regex);
+                if (matches) {
+                    matches.forEach(match => {
+                        const confidence = 85 + Math.floor(Math.random() * 15); // 85-100%
+                        totalConfidence += confidence;
+                        
+                        detections.push({
+                            type: pattern.name,
+                            match: match,
+                            dataType: pattern.type,
+                            compliance: pattern.compliance,
+                            severity: pattern.severity,
+                            template: pattern.template,
+                            confidence: confidence,
+                            action: policyTemplates[pattern.type]?.action || 'Alert',
+                            context: getContext(content, match)
+                        });
+                    });
+                }
+            });
+
+            // Calculate Risk Score
+            const riskScore = Math.min(100, detections.length * 15 + Math.floor(Math.random() * 20));
+            const avgConfidence = detections.length > 0 ? Math.round(totalConfidence / detections.length) : 0;
+
+            // Display Results
+            displayResults(detections, riskScore, avgConfidence);
+
+            // Hide loading
+            loading.classList.remove('active');
+            analyzeBtn.disabled = false;
+            results.classList.add('active');
+        });
+
+        function getContext(text, match) {
+            const index = text.indexOf(match);
+            const start = Math.max(0, index - 30);
+            const end = Math.min(text.length, index + match.length + 30);
+            return text.substring(start, end);
+        }
+
+        function displayResults(detections, riskScore, avgConfidence) {
+            // Update Stats
+            document.getElementById('totalDetections').textContent = detections.length;
+            document.getElementById('confidenceAvg').textContent = `${avgConfidence}%`;
+            document.getElementById('riskScore').textContent = riskScore;
+
+            // Update Risk Level
+            const riskLevelEl = document.getElementById('riskLevel');
+            if (riskScore >= 70) {
+                riskLevelEl.textContent = 'HIGH RISK';
+                riskLevelEl.className = 'risk-level risk-high';
+            } else if (riskScore >= 40) {
+                riskLevelEl.textContent = 'MEDIUM RISK';
+                riskLevelEl.className = 'risk-level risk-medium';
+            } else {
+                riskLevelEl.textContent = 'LOW RISK';
+                riskLevelEl.className = 'risk-level risk-low';
+            }
+
+            // Display Detections
+            const detectionsContainer = document.getElementById('detectionsContainer');
+            if (detections.length === 0) {
+                detectionsContainer.innerHTML = '<p style="color: #86EFAC; text-align: center; padding: 30px; font-weight: 500;">No sensitive data detected. Content is safe to share.</p>';
+            } else {
+                detectionsContainer.innerHTML = detections.map(d => `
+                    <div class="detection-item">
+                        <div class="detection-header">
+                            <div class="detection-type">${d.type}</div>
+                            <div class="confidence-badge">${d.confidence}% confidence</div>
+                        </div>
+                        <div class="detection-text">"${d.match}"</div>
+                        <div class="detection-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Data Type</div>
+                                <div class="detail-value">${d.dataType}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Compliance</div>
+                                <div class="detail-value">${d.compliance}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Severity</div>
+                                <div class="detail-value">${d.severity}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">DLP Template</div>
+                                <div class="detail-value">${d.template}</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Display Policy Recommendations
+            const policiesContainer = document.getElementById('policiesContainer');
+            const uniqueTypes = [...new Set(detections.map(d => d.dataType))];
+            
+            if (uniqueTypes.length === 0) {
+                policiesContainer.innerHTML = '<p style="color: #CBD5E1; padding: 20px; text-align: center;">No policy recommendations needed.</p>';
+            } else {
+                policiesContainer.innerHTML = uniqueTypes.map(type => {
+                    const policy = policyTemplates[type];
+                    return `
+                        <div class="policy-item">
+                            <div class="policy-title">
+                                <div class="icon">[${type.substring(0, 1)}]</div>
+                                <span>${type}</span>
+                            </div>
+                            <div class="policy-action">${policy.action}</div>
+                            <div class="policy-description">${policy.description}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Display Compliance Framework
+            const complianceContainer = document.getElementById('complianceContainer');
+            const detectedCompliance = [...new Set(detections.flatMap(d => d.compliance.split(', ')))];
+            
+            if (detectedCompliance.length === 0) {
+                complianceContainer.innerHTML = '<p style="color: #CBD5E1; padding: 20px; text-align: center;">No compliance frameworks triggered.</p>';
+            } else {
+                complianceContainer.innerHTML = detectedCompliance.map(framework => {
+                    const fw = complianceFrameworks[framework];
+                    if (!fw) return '';
+                    return `
+                        <div class="policy-item">
+                            <div class="policy-title">
+                                <div class="icon">[C]</div>
+                                <span>${framework}</span>
+                            </div>
+                            <div style="color: #CBD5E1; font-size: 13px; margin-bottom: 10px;">${fw.description}</div>
+                            <div style="color: #94A3B8; font-size: 13px; line-height: 1.6;">
+                                <strong>Key Requirements:</strong><br>
+                                ${fw.requirements.map(req => `• ${req}`).join('<br>')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+    </script>
+</body>
+</html>

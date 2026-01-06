@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skills Adjacency Navigator | AI-Powered Career Intelligence</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0f2f5 0%, #e4e6eb 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.95;
+            margin-bottom: 5px;
+        }
+
+        .tagline {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .control-panel {
+            height: fit-content;
+        }
+
+        .control-panel h3 {
+            margin-bottom: 20px;
+            color: #1877f2;
+            font-size: 1.3em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95em;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #1877f2;
+            box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #1877f2 0%, #0a66c2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+            margin-bottom: 10px;
+            animation: slideInUp 0.5s ease;
+        }
+
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(24, 119, 242, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .secondary-btn {
+            background: linear-gradient(135deg, #0a66c2 0%, #1877f2 100%);
+        }
+
+        #graph-container {
+            position: relative;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            height: 600px;
+            box-shadow: 0 4px 12px rgba(24, 119, 242, 0.1);
+            animation: fadeIn 0.6s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .graph-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .node {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .node:hover {
+            filter: brightness(1.2);
+        }
+
+        .node-circle {
+            stroke: white;
+            stroke-width: 3px;
+        }
+
+        .node-label {
+            font-size: 12px;
+            font-weight: 600;
+            pointer-events: none;
+            text-anchor: middle;
+        }
+
+        .link {
+            stroke: #999;
+            stroke-opacity: 0.6;
+            stroke-width: 2px;
+            fill: none;
+        }
+
+        .link-label {
+            font-size: 10px;
+            fill: #666;
+            pointer-events: none;
+        }
+
+        .insights-panel {
+            grid-column: 1 / -1;
+            display: none;
+        }
+
+        .insights-panel.active {
+            display: block;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .insight-card {
+            background: linear-gradient(135deg, #f0f2f5 0%, #e8eef7 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #1877f2;
+            animation: slideInRight 0.6s ease;
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .insight-card h4 {
+            color: #1877f2;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .insight-card .value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .insight-card .label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .pathway-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .pathway-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid #1877f2;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.5s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pathway-item:hover {
+            box-shadow: 0 4px 12px rgba(24, 119, 242, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .pathway-item .role {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .pathway-item .skills {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .pathway-item .time {
+            color: #1877f2;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .skill-tag {
+            display: inline-block;
+            background: #1877f2;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin: 3px;
+        }
+
+        .legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid white;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1000;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Skills Adjacency Navigator</h1>
+            <div class="subtitle">AI-Powered Career Path Intelligence</div>
+            <div class="tagline">Discover Hidden Career Transitions Through Skill Relationships</div>
+        </header>
+
+        <div class="main-grid">
+            <div class="panel control-panel">
+                <h3>Career Explorer</h3>
+                
+                <div class="input-group">
+                    <label for="currentRole">Current Role</label>
+                    <select id="currentRole">
+                        <option value="">Select your role...</option>
+                        <option value="Data Analyst">Data Analyst</option>
+                        <option value="Software Engineer">Software Engineer</option>
+                        <option value="Product Manager">Product Manager</option>
+                        <option value="UX Designer">UX Designer</option>
+                        <option value="Marketing Manager">Marketing Manager</option>
+                        <option value="Business Analyst">Business Analyst</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="targetRole">Target Role (Optional)</label>
+                    <select id="targetRole">
+                        <option value="">Discover options...</option>
+                        <option value="ML Engineer">ML Engineer</option>
+                        <option value="Data Scientist">Data Scientist</option>
+                        <option value="AI Product Manager">AI Product Manager</option>
+                        <option value="Full Stack Developer">Full Stack Developer</option>
+                        <option value="DevOps Engineer">DevOps Engineer</option>
+                        <option value="Growth Manager">Growth Manager</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="experience">Years of Experience</label>
+                    <input type="number" id="experience" min="0" max="30" value="3" placeholder="Years">
+                </div>
+
+                <button onclick="analyzeCareerPath()">🚀 Analyze Career Paths</button>
+                <button onclick="resetVisualization()" class="secondary-btn">🔄 Reset</button>
+
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #f0f0f0;">
+                    <p style="font-size: 0.85em; color: #666; line-height: 1.6;">
+                        <strong>How it works:</strong><br>
+                        • Graph nodes represent skills<br>
+                        • Edge thickness shows skill relatedness<br>
+                        • Colors indicate skill domains<br>
+                        • Click nodes for detailed insights
+                    </p>
+                </div>
+            </div>
+
+            <div class="panel" id="graph-container">
+                <svg class="graph-svg" id="graphSvg"></svg>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #667eea;"></div>
+                        <span>Technical Skills</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f093fb;"></div>
+                        <span>Business Skills</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4facfe;"></div>
+                        <span>Design Skills</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #43e97b;"></div>
+                        <span>Soft Skills</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel insights-panel" id="insightsPanel">
+            <h3 style="color: #667eea; margin-bottom: 10px;">📊 Career Transition Intelligence</h3>
+            <p style="color: #666; margin-bottom: 20px;">AI-powered analysis of your career mobility opportunities</p>
+            
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <h4>Skill Match Score</h4>
+                    <div class="value" id="matchScore">--</div>
+                    <div class="label">Alignment with target role</div>
+                </div>
+                
+                <div class="insight-card">
+                    <h4>Skills Gap</h4>
+                    <div class="value" id="skillsGap">--</div>
+                    <div class="label">Skills to acquire</div>
+                </div>
+                
+                <div class="insight-card">
+                    <h4>Estimated Timeline</h4>
+                    <div class="value" id="timeline">--</div>
+                    <div class="label">Time to transition</div>
+                </div>
+                
+                <div class="insight-card">
+                    <h4>Market Demand</h4>
+                    <div class="value" id="demand">--</div>
+                    <div class="label">Job market strength</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <h4 style="color: #667eea; margin-bottom: 15px;">🎯 Recommended Learning Pathways</h4>
+                <ul class="pathway-list" id="pathwayList"></ul>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <h4 style="color: #667eea; margin-bottom: 15px;">💼 Alternative Career Options</h4>
+                <ul class="pathway-list" id="alternativesList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Comprehensive skills database with relationships
+        const skillsData = {
+            'Data Analyst': {
+                skills: ['SQL', 'Excel', 'Tableau', 'Python', 'Statistics', 'Data Visualization'],
+                domain: 'technical',
+                transitions: {
+                    'ML Engineer': { overlap: 0.45, gap: ['Deep Learning', 'PyTorch', 'Model Deployment'], months: 8 },
+                    'Data Scientist': { overlap: 0.65, gap: ['Machine Learning', 'R', 'A/B Testing'], months: 6 },
+                    'Business Analyst': { overlap: 0.55, gap: ['Business Strategy', 'Stakeholder Management'], months: 4 }
+                }
+            },
+            'Software Engineer': {
+                skills: ['Java', 'Python', 'Git', 'APIs', 'Data Structures', 'System Design'],
+                domain: 'technical',
+                transitions: {
+                    'ML Engineer': { overlap: 0.50, gap: ['Machine Learning', 'TensorFlow', 'NLP'], months: 7 },
+                    'Full Stack Developer': { overlap: 0.70, gap: ['React', 'Node.js', 'CSS'], months: 5 },
+                    'DevOps Engineer': { overlap: 0.55, gap: ['Docker', 'Kubernetes', 'CI/CD'], months: 6 }
+                }
+            },
+            'Product Manager': {
+                skills: ['Product Strategy', 'Roadmapping', 'Agile', 'User Research', 'SQL', 'Communication'],
+                domain: 'business',
+                transitions: {
+                    'AI Product Manager': { overlap: 0.60, gap: ['ML Concepts', 'AI Ethics', 'Model Evaluation'], months: 5 },
+                    'Growth Manager': { overlap: 0.65, gap: ['SEO', 'Analytics', 'Experimentation'], months: 4 },
+                    'Data Scientist': { overlap: 0.35, gap: ['Python', 'Statistics', 'Machine Learning'], months: 10 }
+                }
+            },
+            'UX Designer': {
+                skills: ['Figma', 'User Research', 'Prototyping', 'Design Systems', 'HTML/CSS', 'Accessibility'],
+                domain: 'design',
+                transitions: {
+                    'Product Manager': { overlap: 0.50, gap: ['Business Strategy', 'SQL', 'Agile'], months: 6 },
+                    'Full Stack Developer': { overlap: 0.40, gap: ['JavaScript', 'React', 'Backend'], months: 9 },
+                    'AI Product Manager': { overlap: 0.45, gap: ['ML Concepts', 'Data Analysis'], months: 7 }
+                }
+            },
+            'Marketing Manager': {
+                skills: ['SEO', 'Content Strategy', 'Analytics', 'Campaign Management', 'Social Media', 'Communication'],
+                domain: 'business',
+                transitions: {
+                    'Growth Manager': { overlap: 0.75, gap: ['A/B Testing', 'Python', 'SQL'], months: 4 },
+                    'Product Manager': { overlap: 0.45, gap: ['Product Strategy', 'Agile', 'Roadmapping'], months: 7 },
+                    'Data Analyst': { overlap: 0.40, gap: ['SQL', 'Python', 'Statistics'], months: 8 }
+                }
+            },
+            'Business Analyst': {
+                skills: ['Excel', 'SQL', 'Business Strategy', 'Stakeholder Management', 'Process Mapping', 'Requirements'],
+                domain: 'business',
+                transitions: {
+                    'Data Analyst': { overlap: 0.60, gap: ['Python', 'Tableau', 'Statistics'], months: 5 },
+                    'Product Manager': { overlap: 0.65, gap: ['Agile', 'User Research', 'Roadmapping'], months: 5 },
+                    'Data Scientist': { overlap: 0.35, gap: ['Machine Learning', 'Python', 'R'], months: 10 }
+                }
+            }
+        };
+
+        const allSkills = {
+            'SQL': { category: 'technical', related: ['Python', 'Data Visualization', 'Excel'] },
+            'Python': { category: 'technical', related: ['Machine Learning', 'SQL', 'Data Structures'] },
+            'Excel': { category: 'technical', related: ['SQL', 'Tableau', 'Data Visualization'] },
+            'Tableau': { category: 'technical', related: ['Data Visualization', 'SQL', 'Excel'] },
+            'Statistics': { category: 'technical', related: ['Machine Learning', 'Python', 'A/B Testing'] },
+            'Data Visualization': { category: 'technical', related: ['Tableau', 'Python', 'SQL'] },
+            'Machine Learning': { category: 'technical', related: ['Python', 'Deep Learning', 'Statistics'] },
+            'Deep Learning': { category: 'technical', related: ['Machine Learning', 'PyTorch', 'TensorFlow'] },
+            'PyTorch': { category: 'technical', related: ['Deep Learning', 'TensorFlow', 'Python'] },
+            'TensorFlow': { category: 'technical', related: ['Deep Learning', 'PyTorch', 'Python'] },
+            'NLP': { category: 'technical', related: ['Machine Learning', 'Python', 'Deep Learning'] },
+            'Java': { category: 'technical', related: ['Python', 'Data Structures', 'System Design'] },
+            'Git': { category: 'technical', related: ['CI/CD', 'DevOps', 'System Design'] },
+            'APIs': { category: 'technical', related: ['System Design', 'Backend', 'Node.js'] },
+            'Data Structures': { category: 'technical', related: ['System Design', 'Python', 'Java'] },
+            'System Design': { category: 'technical', related: ['APIs', 'Data Structures', 'Backend'] },
+            'React': { category: 'technical', related: ['JavaScript', 'HTML/CSS', 'Node.js'] },
+            'Node.js': { category: 'technical', related: ['JavaScript', 'React', 'APIs'] },
+            'JavaScript': { category: 'technical', related: ['React', 'Node.js', 'HTML/CSS'] },
+            'HTML/CSS': { category: 'technical', related: ['JavaScript', 'React', 'Figma'] },
+            'Docker': { category: 'technical', related: ['Kubernetes', 'CI/CD', 'DevOps'] },
+            'Kubernetes': { category: 'technical', related: ['Docker', 'CI/CD', 'DevOps'] },
+            'CI/CD': { category: 'technical', related: ['Docker', 'Git', 'DevOps'] },
+            'Product Strategy': { category: 'business', related: ['Roadmapping', 'Business Strategy', 'Agile'] },
+            'Roadmapping': { category: 'business', related: ['Product Strategy', 'Agile', 'Stakeholder Management'] },
+            'Agile': { category: 'business', related: ['Product Strategy', 'Roadmapping', 'Requirements'] },
+            'User Research': { category: 'design', related: ['Prototyping', 'User Testing', 'Design Systems'] },
+            'Communication': { category: 'soft', related: ['Stakeholder Management', 'Presentation', 'Leadership'] },
+            'SEO': { category: 'business', related: ['Analytics', 'Content Strategy', 'Growth'] },
+            'Analytics': { category: 'business', related: ['SEO', 'A/B Testing', 'SQL'] },
+            'A/B Testing': { category: 'technical', related: ['Statistics', 'Analytics', 'Experimentation'] },
+            'Figma': { category: 'design', related: ['Prototyping', 'Design Systems', 'HTML/CSS'] },
+            'Prototyping': { category: 'design', related: ['Figma', 'User Research', 'Design Systems'] },
+            'Design Systems': { category: 'design', related: ['Figma', 'Prototyping', 'Accessibility'] },
+            'Business Strategy': { category: 'business', related: ['Product Strategy', 'Stakeholder Management', 'Process Mapping'] },
+            'Stakeholder Management': { category: 'soft', related: ['Communication', 'Business Strategy', 'Requirements'] }
+        };
+
+        const colorMap = {
+            technical: '#1877f2',
+            business: '#0a66c2',
+            design: '#1877f2',
+            soft: '#0a66c2'
+        };
+
+        let simulation;
+
+        function analyzeCareerPath() {
+            const currentRole = document.getElementById('currentRole').value;
+            const targetRole = document.getElementById('targetRole').value;
+            const experience = parseInt(document.getElementById('experience').value) || 3;
+
+            if (!currentRole) {
+                alert('Please select your current role');
+                return;
+            }
+
+            const roleData = skillsData[currentRole];
+            if (!roleData) return;
+
+            // Show insights panel
+            document.getElementById('insightsPanel').classList.add('active');
+
+            // Build graph data
+            const nodes = [];
+            const links = [];
+            const skillSet = new Set(roleData.skills);
+
+            // Add current role skills
+            roleData.skills.forEach(skill => {
+                nodes.push({
+                    id: skill,
+                    category: allSkills[skill]?.category || 'technical',
+                    size: 15,
+                    current: true
+                });
+            });
+
+            // If target role specified, add gap skills
+            if (targetRole && roleData.transitions[targetRole]) {
+                const transition = roleData.transitions[targetRole];
+                transition.gap.forEach(skill => {
+                    if (!skillSet.has(skill)) {
+                        nodes.push({
+                            id: skill,
+                            category: allSkills[skill]?.category || 'technical',
+                            size: 12,
+                            target: true
+                        });
+                        skillSet.add(skill);
+                    }
+                });
+
+                // Update insights
+                document.getElementById('matchScore').textContent = Math.round(transition.overlap * 100) + '%';
+                document.getElementById('skillsGap').textContent = transition.gap.length;
+                document.getElementById('timeline').textContent = transition.months + ' months';
+                document.getElementById('demand').textContent = 'High';
+
+                // Generate pathway
+                const pathwayHTML = `
+                    <li class="pathway-item">
+                        <div class="role">Path to ${targetRole}</div>
+                        <div class="skills">
+                            ${transition.gap.map(s => `<span class="skill-tag">${s}</span>`).join('')}
+                        </div>
+                        <div class="time">${transition.months} months • ${Math.ceil(transition.months / 3)} courses recommended</div>
+                    </li>
+                `;
+                document.getElementById('pathwayList').innerHTML = pathwayHTML;
+            } else {
+                // Show top 3 transitions
+                const transitions = Object.entries(roleData.transitions)
+                    .sort((a, b) => b[1].overlap - a[1].overlap)
+                    .slice(0, 3);
+
+                document.getElementById('matchScore').textContent = 'Multiple';
+                document.getElementById('skillsGap').textContent = 'Varies';
+                document.getElementById('timeline').textContent = '4-10 mo';
+                document.getElementById('demand').textContent = 'High';
+
+                const alternativesHTML = transitions.map(([role, data]) => `
+                    <li class="pathway-item">
+                        <div class="role">${role}</div>
+                        <div class="skills">
+                            Match: ${Math.round(data.overlap * 100)}% • 
+                            Gap: ${data.gap.map(s => `<span class="skill-tag">${s}</span>`).join('')}
+                        </div>
+                        <div class="time">${data.months} months</div>
+                    </li>
+                `).join('');
+                document.getElementById('alternativesList').innerHTML = alternativesHTML;
+            }
+
+            // Create links based on skill relationships
+            nodes.forEach((node, i) => {
+                const related = allSkills[node.id]?.related || [];
+                nodes.forEach((otherNode, j) => {
+                    if (i < j && related.includes(otherNode.id)) {
+                        links.push({
+                            source: node.id,
+                            target: otherNode.id,
+                            strength: 0.8
+                        });
+                    }
+                });
+            });
+
+            renderGraph(nodes, links);
+        }
+
+        function renderGraph(nodes, links) {
+            const svg = d3.select('#graphSvg');
+            svg.selectAll('*').remove();
+
+            const container = document.getElementById('graph-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            const g = svg.append('g');
+
+            // Create zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.5, 3])
+                .on('zoom', (event) => {
+                    g.attr('transform', event.transform);
+                });
+
+            svg.call(zoom);
+
+            simulation = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(100))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(40));
+
+            // Create links
+            const link = g.append('g')
+                .selectAll('line')
+                .data(links)
+                .enter()
+                .append('line')
+                .attr('class', 'link')
+                .attr('stroke-width', d => d.strength * 3);
+
+            // Create nodes
+            const node = g.append('g')
+                .selectAll('g')
+                .data(nodes)
+                .enter()
+                .append('g')
+                .attr('class', 'node')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+
+            node.append('circle')
+                .attr('class', 'node-circle')
+                .attr('r', d => d.size)
+                .attr('fill', d => colorMap[d.category])
+                .attr('opacity', d => d.current ? 1 : d.target ? 0.7 : 0.5);
+
+            node.append('text')
+                .attr('class', 'node-label')
+                .attr('dy', -20)
+                .text(d => d.id)
+                .style('font-weight', d => d.current || d.target ? '700' : '400');
+
+            // Tooltip
+            const tooltip = d3.select('#tooltip');
+            
+            node.on('mouseover', function(event, d) {
+                tooltip.style('opacity', 1)
+                    .html(`
+                        <strong>${d.id}</strong><br>
+                        Category: ${d.category}<br>
+                        ${d.current ? 'Current Skill' : d.target ? 'Target Skill' : 'Related Skill'}
+                    `)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 10) + 'px');
+            })
+            .on('mouseout', function() {
+                tooltip.style('opacity', 0);
+            });
+
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+        }
+
+        function resetVisualization() {
+            document.getElementById('currentRole').value = '';
+            document.getElementById('targetRole').value = '';
+            document.getElementById('experience').value = 3;
+            document.getElementById('insightsPanel').classList.remove('active');
+            d3.select('#graphSvg').selectAll('*').remove();
+        }
+
+        // Initialize with welcome message
+        window.addEventListener('load', () => {
+            const svg = d3.select('#graphSvg');
+            const container = document.getElementById('graph-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            svg.append('text')
+                .attr('x', width / 2)
+                .attr('y', height / 2)
+                .attr('text-anchor', 'middle')
+                .attr('font-size', '24px')
+                .attr('fill', '#999')
+                .text('Select your role to visualize career pathways');
+        });
+    </script>
+</body>
+</html>
