@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI ROI Calculator - Show Me The Money</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #ffffff;
+            color: #1a1a1a;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-top: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #000;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .tagline {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+
+        .calculator-section {
+            background: #fafafa;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #000;
+            font-size: 0.95rem;
+        }
+
+        .helper-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #d1d1d1;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #fff;
+            transition: all 0.2s;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #000;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+
+        button {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #333;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            display: none;
+            margin-top: 40px;
+            padding: 40px;
+            background: #fff;
+            border: 2px solid #000;
+            border-radius: 12px;
+        }
+
+        .results.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .metric {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .metric-value.positive {
+            color: #16a34a;
+        }
+
+        .metric-value.negative {
+            color: #dc2626;
+        }
+
+        .roi-status {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .roi-status.excellent {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .roi-status.good {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .roi-status.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .roi-status.poor {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .recommendations {
+            margin-top: 40px;
+            padding: 30px;
+            background: #fafafa;
+            border-radius: 12px;
+        }
+
+        .recommendations h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #000;
+        }
+
+        .recommendation-item {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            border-left: 4px solid #000;
+        }
+
+        .recommendation-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .recommendation-desc {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .openai-model-card {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .model-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+
+        .model-pricing {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .model-use-case {
+            font-size: 0.85rem;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 80px;
+            padding: 40px 20px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .footer-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+
+        .cta-link {
+            color: #000;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 2px solid #000;
+            transition: opacity 0.2s;
+        }
+
+        .cta-link:hover {
+            opacity: 0.7;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .calculator-section {
+                padding: 24px;
+            }
+
+            .results {
+                padding: 24px;
+            }
+        }
+
+        .insight-box {
+            background: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 16px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+
+        .insight-box strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #0c4a6e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Show Me The Money</h1>
+            <p class="subtitle">AI ROI Calculator for Startups</p>
+            <span class="tagline">2026 Edition - Built for OpenAI Solutions Architects</span>
+        </header>
+
+        <div class="calculator-section">
+            <h2 style="margin-bottom: 30px; font-size: 1.5rem;">Calculate Your AI Investment ROI</h2>
+            
+            <div class="input-group">
+                <label>Your Monthly AI Spend ($)</label>
+                <div class="helper-text">Include API costs, infrastructure, and team time</div>
+                <input type="number" id="aiSpend" placeholder="e.g., 15000" value="">
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Monthly Active Users</label>
+                    <input type="number" id="users" placeholder="e.g., 10000" value="">
+                </div>
+
+                <div class="input-group">
+                    <label>Average Revenue Per User ($)</label>
+                    <input type="number" id="arpu" placeholder="e.g., 25" value="">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>AI-Driven Conversion Rate (%)</label>
+                <div class="helper-text">What % of users convert because of AI features?</div>
+                <input type="number" id="conversionRate" placeholder="e.g., 3.5" step="0.1" value="">
+            </div>
+
+            <div class="input-group">
+                <label>Hours Saved Per Week (Team)</label>
+                <div class="helper-text">Time saved through AI automation</div>
+                <input type="number" id="hoursSaved" placeholder="e.g., 80" value="">
+            </div>
+
+            <div class="input-group">
+                <label>Average Hourly Team Cost ($)</label>
+                <div class="helper-text">Blended rate for your team</div>
+                <input type="number" id="hourlyCost" placeholder="e.g., 75" value="">
+            </div>
+
+            <div class="input-group">
+                <label>Primary AI Use Case</label>
+                <select id="useCase">
+                    <option value="chatbot">Customer Support Chatbot</option>
+                    <option value="search">Semantic Search & Recommendations</option>
+                    <option value="content">Content Generation</option>
+                    <option value="coding">AI Coding Assistant</option>
+                    <option value="analytics">Data Analytics & Insights</option>
+                    <option value="agent">Autonomous AI Agents</option>
+                </select>
+            </div>
+
+            <button onclick="calculateROI()">Calculate ROI</button>
+        </div>
+
+        <div class="results" id="results">
+            <h2 style="margin-bottom: 30px; font-size: 1.5rem;">Your AI ROI Analysis</h2>
+            
+            <div class="metric">
+                <div class="metric-label">Monthly ROI</div>
+                <div class="metric-value" id="roiPercentage">0%</div>
+                <div class="roi-status" id="roiStatus">Calculating...</div>
+            </div>
+
+            <div class="grid-2">
+                <div class="metric">
+                    <div class="metric-label">Monthly AI Revenue</div>
+                    <div class="metric-value positive" id="aiRevenue">$0</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Cost Savings</div>
+                    <div class="metric-value positive" id="costSavings">$0</div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="metric">
+                    <div class="metric-label">Total Monthly Value</div>
+                    <div class="metric-value positive" id="totalValue">$0</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Net Monthly Profit</div>
+                    <div class="metric-value" id="netProfit">$0</div>
+                </div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-label">Annual ROI Projection</div>
+                <div class="metric-value" id="annualROI">0%</div>
+            </div>
+
+            <div class="insight-box">
+                <strong>💡 2026 Reality Check</strong>
+                <p id="insightText">Calculating insights...</p>
+            </div>
+
+            <div class="recommendations">
+                <h3>OpenAI Model Recommendations</h3>
+                <div id="modelRecommendations"></div>
+            </div>
+
+            <div class="recommendations">
+                <h3>How to Improve Your ROI</h3>
+                <div id="improvementTips"></div>
+            </div>
+        </div>
+
+        <footer>
+            <p class="footer-text">Built by Gaurav Chauhan for OpenAI Solutions Architect Application</p>
+            <p class="footer-text">
+                <a href="mailto:gauravc2708@gmail.com" class="cta-link">gauravc2708@gmail.com</a> | 
+                <a href="https://github.com/2796gaurav" class="cta-link" target="_blank">GitHub</a> | 
+                <a href="https://2796gaurav.github.io" class="cta-link" target="_blank">Portfolio</a> | 
+                <a href="https://www.linkedin.com/in/gauravc2708" class="cta-link" target="_blank">LinkedIn</a>
+            </p>
+            <p class="footer-text" style="margin-top: 20px; font-size: 0.85rem;">
+                📊 Data based on 2026 industry benchmarks: MIT Sloan, McKinsey, Gartner, PwC research
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        function calculateROI() {
+            // Get inputs
+            const aiSpend = parseFloat(document.getElementById('aiSpend').value) || 0;
+            const users = parseFloat(document.getElementById('users').value) || 0;
+            const arpu = parseFloat(document.getElementById('arpu').value) || 0;
+            const conversionRate = parseFloat(document.getElementById('conversionRate').value) || 0;
+            const hoursSaved = parseFloat(document.getElementById('hoursSaved').value) || 0;
+            const hourlyCost = parseFloat(document.getElementById('hourlyCost').value) || 0;
+            const useCase = document.getElementById('useCase').value;
+
+            // Validate inputs
+            if (aiSpend === 0 || users === 0) {
+                alert('Please fill in at least AI Spend and Monthly Active Users');
+                return;
+            }
+
+            // Calculate AI-driven revenue
+            const convertedUsers = users * (conversionRate / 100);
+            const aiRevenue = convertedUsers * arpu;
+
+            // Calculate cost savings
+            const monthlySavings = (hoursSaved * 4.33) * hourlyCost;
+
+            // Total value and ROI
+            const totalValue = aiRevenue + monthlySavings;
+            const netProfit = totalValue - aiSpend;
+            const roi = aiSpend > 0 ? ((netProfit / aiSpend) * 100) : 0;
+            const annualROI = roi;
+
+            // Update display
+            document.getElementById('roiPercentage').textContent = roi.toFixed(1) + '%';
+            document.getElementById('aiRevenue').textContent = '$' + aiRevenue.toLocaleString('en-US', {maximumFractionDigits: 0});
+            document.getElementById('costSavings').textContent = '$' + monthlySavings.toLocaleString('en-US', {maximumFractionDigits: 0});
+            document.getElementById('totalValue').textContent = '$' + totalValue.toLocaleString('en-US', {maximumFractionDigits: 0});
+            document.getElementById('netProfit').textContent = '$' + netProfit.toLocaleString('en-US', {maximumFractionDigits: 0});
+            document.getElementById('annualROI').textContent = annualROI.toFixed(1) + '%';
+
+            // Set ROI status
+            const statusEl = document.getElementById('roiStatus');
+            const netProfitEl = document.getElementById('netProfit');
+            
+            if (roi >= 200) {
+                statusEl.textContent = 'Excellent ROI';
+                statusEl.className = 'roi-status excellent';
+            } else if (roi >= 100) {
+                statusEl.textContent = 'Good ROI';
+                statusEl.className = 'roi-status good';
+            } else if (roi >= 0) {
+                statusEl.textContent = 'Breaking Even';
+                statusEl.className = 'roi-status warning';
+            } else {
+                statusEl.textContent = 'Needs Optimization';
+                statusEl.className = 'roi-status poor';
+            }
+
+            // Color net profit
+            if (netProfit > 0) {
+                netProfitEl.className = 'metric-value positive';
+            } else {
+                netProfitEl.className = 'metric-value negative';
+            }
+
+            // Generate insights
+            generateInsights(roi, aiSpend, conversionRate, totalValue);
+
+            // Generate model recommendations
+            generateModelRecommendations(useCase, users, aiSpend);
+
+            // Generate improvement tips
+            generateImprovementTips(roi, conversionRate, hoursSaved);
+
+            // Show results
+            document.getElementById('results').classList.add('show');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function generateInsights(roi, aiSpend, conversionRate, totalValue) {
+            const insightEl = document.getElementById('insightText');
+            let insight = '';
+
+            if (roi >= 200) {
+                insight = `Outstanding! Your AI investment is generating ${roi.toFixed(0)}% ROI. According to 2026 benchmarks, you're in the top 6% of AI performers (McKinsey). You're proving exactly what CFOs want to see.`;
+            } else if (roi >= 116) {
+                insight = `Solid performance! Your ${roi.toFixed(0)}% ROI matches Forrester's 2026 benchmark for successful AI implementations (116-259% range). You're proving value, but there's room to optimize.`;
+            } else if (roi >= 0) {
+                insight = `You're at ${roi.toFixed(0)}% ROI. MIT research shows 95% of enterprises struggle to see meaningful returns. The good news: you're not burning money. Focus on increasing conversion rates and reducing inference costs.`;
+            } else {
+                insight = `At ${roi.toFixed(0)}% ROI, your AI isn't paying for itself yet. This is common—BCG found 60% of companies have no defined financial KPIs. Time to optimize or pivot your AI strategy.`;
+            }
+
+            // Add spending context
+            if (aiSpend > 50000) {
+                insight += ` Note: At $${aiSpend.toLocaleString()}/month, you're in "enterprise AI spend" territory. 2026 trend: companies are consolidating vendors and demanding outcome-based pricing.`;
+            }
+
+            insightEl.textContent = insight;
+        }
+
+        function generateModelRecommendations(useCase, users, aiSpend) {
+            const container = document.getElementById('modelRecommendations');
+            const recommendations = {
+                chatbot: [
+                    {
+                        name: 'GPT-5 Mini',
+                        pricing: '$0.25 input / $2.00 output per 1M tokens',
+                        use: 'Perfect for customer support at scale. Fast responses, lower cost. Best for straightforward queries.',
+                        why: 'Your chatbot needs speed and affordability. Mini handles 80% of support queries at 1/4 the cost of full GPT-5.'
+                    },
+                    {
+                        name: 'GPT-5.2 (with function calling)',
+                        pricing: '$1.25 input / $10.00 output per 1M tokens',
+                        use: 'Complex queries requiring database lookups, ticket creation, or multi-step reasoning.',
+                        why: 'For the 20% of queries that need deep reasoning. Use routing logic: Mini first, escalate to 5.2 when needed.'
+                    }
+                ],
+                search: [
+                    {
+                        name: 'text-embedding-3-large',
+                        pricing: '~$0.13 per 1M tokens',
+                        use: 'Convert product descriptions, docs, and user queries into vectors for semantic search.',
+                        why: 'Semantic search is table stakes in 2026. Use Qdrant/Pinecone for vector storage, embed once, search millions of times.'
+                    },
+                    {
+                        name: 'GPT-5 Nano',
+                        pricing: '$0.05 input / $0.40 output per 1M tokens',
+                        use: 'Generate personalized recommendations based on search results.',
+                        why: 'Nano is criminally underused. Perfect for personalizing search results without breaking the bank.'
+                    }
+                ],
+                content: [
+                    {
+                        name: 'GPT-5',
+                        pricing: '$1.25 input / $10.00 output per 1M tokens',
+                        use: 'High-quality blog posts, marketing copy, product descriptions that need creativity.',
+                        why: 'Content is brand voice. Don\'t cheap out here. GPT-5\'s quality justifies the cost when your brand is on the line.'
+                    },
+                    {
+                        name: 'GPT-5 Mini (for drafts)',
+                        pricing: '$0.25 input / $2.00 output per 1M tokens',
+                        use: 'First drafts, internal docs, meta descriptions, social posts.',
+                        why: '2-stage pipeline: Mini for drafts, humans or GPT-5 for polish. Saves 60% on content costs.'
+                    }
+                ],
+                coding: [
+                    {
+                        name: 'GPT-5.2',
+                        pricing: '$1.25 input / $10.00 output per 1M tokens',
+                        use: 'Complex code generation, debugging, architecture decisions.',
+                        why: 'Coding is GPT-5.2\'s sweet spot. Use it with MCP for tool integration. Worth every penny when it saves eng hours.'
+                    },
+                    {
+                        name: 'GPT-5 Mini',
+                        pricing: '$0.25 input / $2.00 output per 1M tokens',
+                        use: 'Code explanations, documentation, simple scripts.',
+                        why: 'Mini handles boilerplate and docs. Reserve 5.2 for actual problem-solving.'
+                    }
+                ],
+                analytics: [
+                    {
+                        name: 'GPT-5',
+                        pricing: '$1.25 input / $10.00 output per 1M tokens',
+                        use: 'Natural language to SQL, data analysis, insight generation.',
+                        why: 'Analytics needs accuracy. GPT-5 gets complex queries right. One wrong insight costs more than the API call.'
+                    },
+                    {
+                        name: 'o4-mini (reasoning model)',
+                        pricing: 'Optimized for reasoning tasks',
+                        use: 'Multi-step analysis, financial projections, statistical reasoning.',
+                        why: '2026 trend: reasoning models for anything involving math or logic. More accurate than standard models.'
+                    }
+                ],
+                agent: [
+                    {
+                        name: 'GPT-5.2 (Agent Builder)',
+                        pricing: '$1.25 input / $10.00 output + tool call fees',
+                        use: 'Agentic workflows with MCP integration, tool use, multi-step planning.',
+                        why: 'Agents are the 2026 frontier. GPT-5.2 with MCP is OpenAI\'s agent platform. Use it or get left behind.'
+                    },
+                    {
+                        name: 'GPT-5 Mini (for sub-agents)',
+                        pricing: '$0.25 input / $2.00 output per 1M tokens',
+                        use: 'Specialized sub-agents for specific tasks within main agent workflow.',
+                        why: 'Agent orchestration: one GPT-5.2 coordinator, multiple Mini workers. Cuts costs by 70% vs all-GPT-5.'
+                    }
+                ]
+            };
+
+            const models = recommendations[useCase] || recommendations.chatbot;
+            container.innerHTML = models.map(model => `
+                <div class="recommendation-item">
+                    <div class="openai-model-card">
+                        <div class="model-name">🤖 ${model.name}</div>
+                        <div class="model-pricing">💰 ${model.pricing}</div>
+                        <div class="model-use-case"><strong>Use case:</strong> ${model.use}</div>
+                        <div class="model-use-case" style="margin-top: 8px;"><strong>Why this matters:</strong> ${model.why}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function generateImprovementTips(roi, conversionRate, hoursSaved) {
+            const container = document.getElementById('improvementTips');
+            const tips = [];
+
+            if (roi < 100) {
+                tips.push({
+                    title: '1. Optimize Your Model Mix',
+                    desc: 'Use GPT-5 Mini for 80% of tasks, GPT-5/5.2 for complex 20%. Implement smart routing. Average savings: 60% on API costs.'
+                });
+            }
+
+            if (conversionRate < 5) {
+                tips.push({
+                    title: '2. Improve AI-Driven Conversions',
+                    desc: 'Your conversion rate is below benchmark (5-8% for AI features). A/B test prompts, add personalization, implement HITL for edge cases. Every 1% increase = significant revenue.'
+                });
+            }
+
+            if (hoursSaved < 100) {
+                tips.push({
+                    title: '3. Expand Automation Scope',
+                    desc: 'You\'re saving <100 hours/month. According to PwC, 80% of AI value comes from redesigning work, not just adding AI. Look for more workflows to automate.'
+                });
+            }
+
+            tips.push({
+                title: '4. Implement Caching (2026 Game-Changer)',
+                desc: 'OpenAI\'s cached input pricing is 90% cheaper ($0.125 vs $1.25 per 1M tokens). For repetitive prompts (system instructions, docs), caching cuts costs dramatically.'
+            });
+
+            tips.push({
+                title: '5. Use MCP for Data Integration',
+                desc: 'Model Context Protocol lets agents access your internal data securely. This reduces prompt length (costs) and increases relevance (conversions). It\'s OpenAI\'s 2026 strategic bet.'
+            });
+
+            if (roi >= 100) {
+                tips.push({
+                    title: '6. Document Everything for Your Board',
+                    desc: 'You\'re already profitable. Now prove it to stakeholders. Track: cost per query, revenue attribution, time saved. 2026 is the "show your work" year for AI.'
+                });
+            }
+
+            container.innerHTML = tips.map(tip => `
+                <div class="recommendation-item">
+                    <div class="recommendation-title">${tip.title}</div>
+                    <div class="recommendation-desc">${tip.desc}</div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
